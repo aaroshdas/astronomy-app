@@ -34,13 +34,21 @@ function App() {
       
       let url = `https://api.open-elevation.com/api/v1/lookup?locations=${position.coords.latitude},${position.coords.longitude}`
       
-      axios.get(url).then((response => {
-        console.log(response.data)
-      }));
-      console.log(position.altitude)
-      var observer = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, position.coords.altitude)
-      console.log(Astronomy.Horizon(localDate, observer, rightAscension, declination, null))
+      axios.get(url)
+      .catch(function(error){
+        console.log(error)
+      })
+      .then((response => {
+        console.log("called")
+        var localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, response.data['results'][0]['elevation'])
+        
+        var body = (Astronomy.Equator(Astronomy.Body.Sun, localDate, localObserver, true, false))
+        document.getElementById("body").innerHTML = "body: sun";
 
+        var horData = Astronomy.Horizon(localDate, localObserver, body.ra, body.dec, 'normal');
+        document.getElementById("azimuth").innerHTML = "Azimuth: "+ horData.azimuth.toFixed(5);
+        document.getElementById("altitude").innerHTML = "Altitude: " + horData.altitude.toFixed(5);
+      }));
       document.getElementById("longlat").innerHTML = ("Latitude/Longtitude: " + position.coords.latitude.toFixed(4).toString() + ", "+ position.coords.longitude.toFixed(4).toString())
       
       document.getElementById("localDate").innerHTML = ("Local time: " + localDate.toString().slice(16,25))
@@ -55,13 +63,22 @@ function App() {
   });
   return (
     <div>
-      <h3>zenith coords</h3>
-      <main id = "longlat"></main>
-      <main id = "localDate"></main>
-      <main id = "utcDate"></main>
-      <main id = "RA"></main>
-      <main id = "rawRA"></main>
-      <main id = "dec"></main>
+      <h3>local data/zenith coords</h3>
+      <div className='dataSeparator'>
+        <main id = "longlat"></main>
+        <main id = "localDate"></main>
+        <main id = "utcDate"></main>
+        <main id = "RA"></main>
+        <main id = "rawRA"></main>
+        <main id = "dec"></main>
+      </div>
+
+      <h3>body coords in relation to observer</h3>
+      <div className='dataSeparator'>
+        <main id = "body"></main>
+        <main id = "azimuth"></main>
+        <main id = "altitude"></main>
+      </div>
     </div>
   );
 }
