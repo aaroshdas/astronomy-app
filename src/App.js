@@ -74,33 +74,36 @@ function App() {
   <div>
     <h3>local data/zenith coords</h3>
     <div className='dataSeparator'>
+    <hr/>
       <main id = "longlat"></main>
       <main id = "localDate"></main>
       <main id = "utcDate"></main>
       <main id = "RA"></main>
       <main id = "dec"></main>
-    </div>
-
-    <div className='dataSeparator'>
-      <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Sun, "Body: Sun");}}>sun</button>
-      <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Mercury, "Body: Mercury");}}>mercury</button>
-      <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Venus, "Body: Venus");}}>venus</button>
-      <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Moon, "Body: Moon");}}>moon</button>
-      <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Mars, "Body: Mars");}}>mars</button>
-      <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Jupiter, "Body: Jupiter");}}>jupiter</button>
-      <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Uranus, "Body: Uranus");}}>uranus</button>
-      <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Saturn, "Body: Saturn");}}>saturn</button>
-      <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Neptune, "Body: Neptune");}}>neptune</button>
+      <hr/>
     </div>
 
     <h3>body coords in relation to observer</h3>
     <div className='dataSeparator'>
+      <div className='buttonContainer'>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Sun, "Body: Sun");}}>sun</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Mercury, "Body: Mercury");}}>mercury</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Venus, "Body: Venus");}}>venus</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Moon, "Body: Moon");}}>moon</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Mars, "Body: Mars");}}>mars</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Jupiter, "Body: Jupiter");}}>jupiter</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Uranus, "Body: Uranus");}}>uranus</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Saturn, "Body: Saturn");}}>saturn</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Neptune, "Body: Neptune");}}>neptune</button>
+      </div>
+    <hr/>
       <main id = "body"></main>
       <main id = "relToHorizon"></main>
       <main id = "bodyRA"></main>
       <main id = "bodyDec"></main>
       <main id = "azimuth"></main>
       <main id = "altitude"></main>
+    <hr/>
     </div>
   </div>
   );

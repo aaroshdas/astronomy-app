@@ -5,6 +5,13 @@ body{
 main{
   margin-bottom: 1%;
 }
+hr{
+  margin-top: 0%;
+  margin-bottom: 1%;
+}
+.buttonContainer{
+  margin-bottom: 1%;
+}
 .dataSeparator{
   margin-bottom: 3%;
 }
