@@ -13,13 +13,14 @@ main{
   position: relative;
   overflow: hidden;
   transition: background 400ms;
-  background-color: rgb(1, 151, 135);
-  border-radius: 2px;
+  background-color: rgb(240, 240, 240);
+  border-radius: 7px;
   border: 1px solid white;
-  color: #FFFFFF;
+  color: black;
   text-align: center;
-  padding: 15px;
-  width: 150px;
+  padding: 2px;
+  margin-right: 0.25%;
+  min-width: 50px;
   box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.3);
 }
 

@@ -85,6 +85,7 @@ function App() {
       <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Sun, "Body: Sun");}}>sun</button>
       <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Mercury, "Body: Mercury");}}>mercury</button>
       <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Venus, "Body: Venus");}}>venus</button>
+      <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Moon, "Body: Moon");}}>moon</button>
       <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Mars, "Body: Mars");}}>mars</button>
       <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Jupiter, "Body: Jupiter");}}>jupiter</button>
       <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Uranus, "Body: Uranus");}}>uranus</button>
