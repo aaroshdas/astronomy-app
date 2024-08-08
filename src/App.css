@@ -4,8 +4,8 @@ body{
   color: rgb(202, 206, 204);
   background-color: rgb(42, 42, 42);
 }
-h3{
-  color: white;
+p{
+  color: rgb(219, 227, 222);
 }
 main{
   margin-bottom: 1%;
@@ -15,12 +15,25 @@ hr{
   margin-bottom: 1%;
   border-color:rgb(42, 42, 42);
 }
+
 .buttonContainer{
   margin-bottom: 1%;
 }
 .dataSeparator{
-  margin-bottom: 3%;
+  margin-top: 1%;
+  margin-bottom: 4%;
 }
+
+*::-webkit-scrollbar {
+  width: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: rgb(42,42,42);
+}
+*::-webkit-scrollbar-thumb {
+  background-color: rgb(122, 122, 122);
+}
+
 
 .rippleButton {
   position: relative;
@@ -29,7 +42,7 @@ hr{
   background-color: rgb(42, 42, 42);
   border-radius: 7px;
   border: 1px solid rgb(112, 112, 104);
-  color: white;
+  color: rgb(202, 206, 204);
   text-align: center;
   padding: 2px;
   margin-right: 0.25%;

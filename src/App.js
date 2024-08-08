@@ -1,10 +1,12 @@
 import './App.css';
 
-import React from 'react'
+import React, { useState } from 'react'
 
 import axios from 'axios'
 
 import { createRipple } from './Ripple.js';
+
+import Scatterplot from './Scatterplot.js';
 
 function createHourString(date){
   let seconds = ((date%1*100%1*1000)*600/10000).toFixed(0);
@@ -20,7 +22,8 @@ function createHourString(date){
   let temp = parseInt(date).toString() +minStr + secStr;
   return temp;
 }
-function updateData(bodyObject, bodyString){
+
+function updateData(bodyObject){
   navigator.geolocation.getCurrentPosition(function (position) {
     const Astronomy = require('./astronomy.js');
 
@@ -43,28 +46,93 @@ function updateData(bodyObject, bodyString){
       console.log(error)
     })
     .then((response => {
-      var localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, response.data['results'][0]['elevation'])
+      if(response != null){
+        var localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, response.data['results'][0]['elevation'])      
+        var body = (Astronomy.Equator(bodyObject, localDate, localObserver, true, false))
+        document.getElementById("body").innerHTML = "Body: " + bodyObject;
 
-      var body = (Astronomy.Equator(bodyObject, localDate, localObserver, true, false))
-      document.getElementById("body").innerHTML = bodyString;
+        document.getElementById("bodyRA").innerHTML = "Right ascension: "+ createHourString(body.ra);
+        document.getElementById("bodyDec").innerHTML = "Declination: " + body.dec.toFixed(5);
 
-      document.getElementById("bodyRA").innerHTML = "Right ascension: "+ createHourString(body.ra);
-      document.getElementById("bodyDec").innerHTML = "Declination: " + body.dec.toFixed(5);
+        var bodyData = Astronomy.Horizon(localDate, localObserver, body.ra, body.dec, 'normal');
+        document.getElementById("azimuth").innerHTML = "Azimuth: "+ bodyData.azimuth.toFixed(5);
+        document.getElementById("altitude").innerHTML = "Altitude: " + bodyData.altitude.toFixed(5);
 
-      var horData = Astronomy.Horizon(localDate, localObserver, body.ra, body.dec, 'normal');
-      document.getElementById("azimuth").innerHTML = "Azimuth: "+ horData.azimuth.toFixed(5);
-      document.getElementById("altitude").innerHTML = "Altitude: " + horData.altitude.toFixed(5);
+        if(bodyData.altitude >= 0){document.getElementById("relToHorizon").innerHTML = "Horizon: Above horizon"}
+        else{document.getElementById("relToHorizon").innerHTML = "Horizon: Below horizon"}
+      }
+    }));
+  });
+}
 
-      if(horData.altitude >= 0){document.getElementById("relToHorizon").innerHTML = "Horizon: Above horizon"}
-      else{document.getElementById("relToHorizon").innerHTML = "Horizon: Below horizon"}
+
+function createData(bodies, setStarData){
+  navigator.geolocation.getCurrentPosition(function (position) {
+    const Astronomy = require('./astronomy.js');
+
+    const localDate = new Date();    
+
+    let url = `https://api.open-elevation.com/api/v1/lookup?locations=${position.coords.latitude},${position.coords.longitude}`
+    axios.get(url)
+    .catch(function(error){
+      console.log(error)
+    })
+    .then((response => {
+      if(response != null){
+        const data = []
+        var localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, response.data['results'][0]['elevation'])
+        for(let i =0; i <bodies.length; i++){
+          let body = (Astronomy.Equator(bodies[i], localDate, localObserver, true, false))
+          let bodyData = Astronomy.Horizon(localDate, localObserver, body.ra, body.dec, 'normal');
+          if(bodyData.altitude >= 0){console.log(`${bodies[i]}: Above horizon`); 
+            let x = Math.sin(bodyData.azimuth*Astronomy.DEG2RAD)*Math.cos(bodyData.altitude*Astronomy.DEG2RAD);
+            let y = Math.cos(bodyData.azimuth*Astronomy.DEG2RAD)*Math.cos(bodyData.altitude*Astronomy.DEG2RAD);
+            let z = Math.sin(bodyData.altitude*Astronomy.DEG2RAD);
+            x = x/(z+1);
+            y = y/(z+1);
+            const X = (1*(1-x))
+            const Y = (1*(1-y))
+            data.push(
+              {
+                label: bodies[i].toString(),
+                //data:[{x:bodyData.azimuth, y:bodyData.altitude}],
+                data:[{x:1*(1-bodyData.altitude/90)*Math.cos(bodyData.azimuth*Astronomy.DEG2RAD), y:1*(1-bodyData.altitude/90)*Math.sin(bodyData.azimuth*Astronomy.DEG2RAD)}],
+                //data:[{x:X, y:Y}],
+                backgroundColor: 'rgb(255, 255,255)'
+              });
+          }
+          else{
+            console.log(`${bodies[i]}: Below horizon`)
+          }
+        }
+
+        setStarData({datasets: data});
+      }
     }));
   });
 }
 
 function App() {
+  const [starData, setStarData] = useState({
+    datasets: [{
+      label: 'Dataset',
+      data: [{
+        x: 0,
+        y: 0
+      }],
+      backgroundColor: 'rgb(255, 255,255)'
+    }],
+  });
   const Astronomy = require('./astronomy.js');
-  updateData(Astronomy.Body.Moon, "Body: Moon");
+  console.log(starData)
   window.addEventListener("load", ()=>{
+    const bodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
+    createData(bodies, setStarData)      
+
+    updateData(Astronomy.Body.Moon, "Body: Moon");
+
+
+
     const buttons = document.getElementsByClassName("rippleButton");
     for (const button of buttons) {
       button.addEventListener("click", createRipple);
@@ -72,9 +140,9 @@ function App() {
   });
   return (
   <div>
-    <h3>local data/zenith coords</h3>
     <div className='dataSeparator'>
-    <hr/>
+      <p>local data/zenith coords</p>
+      <hr/>
       <main id = "longlat"></main>
       <main id = "localDate"></main>
       <main id = "utcDate"></main>
@@ -83,18 +151,18 @@ function App() {
       <hr/>
     </div>
 
-    <h3>body coords in relation to observer</h3>
     <div className='dataSeparator'>
+      <p>body coords in relation to observer</p>
       <div className='buttonContainer'>
-        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Sun, "Body: Sun");}}>sun</button>
-        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Mercury, "Body: Mercury");}}>mercury</button>
-        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Venus, "Body: Venus");}}>venus</button>
-        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Moon, "Body: Moon");}}>moon</button>
-        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Mars, "Body: Mars");}}>mars</button>
-        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Jupiter, "Body: Jupiter");}}>jupiter</button>
-        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Uranus, "Body: Uranus");}}>uranus</button>
-        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Saturn, "Body: Saturn");}}>saturn</button>
-        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Neptune, "Body: Neptune");}}>neptune</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Sun);}}>sun</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Mercury);}}>mercury</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Venus);}}>venus</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Moon);}}>moon</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Mars);}}>mars</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Jupiter);}}>jupiter</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Uranus);}}>uranus</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Saturn);}}>saturn</button>
+        <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Neptune);}}>neptune</button>
       </div>
     <hr/>
       <main id = "body"></main>
@@ -105,6 +173,8 @@ function App() {
       <main id = "altitude"></main>
     <hr/>
     </div>
+
+    <Scatterplot chartData={starData}></Scatterplot>
   </div>
   );
 }
