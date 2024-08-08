@@ -1,6 +1,11 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto');
 body{
   font-family: 'Roboto';
+  color: rgb(202, 206, 204);
+  background-color: rgb(42, 42, 42);
+}
+h3{
+  color: white;
 }
 main{
   margin-bottom: 1%;
@@ -8,6 +13,7 @@ main{
 hr{
   margin-top: 0%;
   margin-bottom: 1%;
+  border-color:rgb(42, 42, 42);
 }
 .buttonContainer{
   margin-bottom: 1%;
@@ -20,10 +26,10 @@ hr{
   position: relative;
   overflow: hidden;
   transition: background 400ms;
-  background-color: rgb(240, 240, 240);
+  background-color: rgb(42, 42, 42);
   border-radius: 7px;
-  border: 1px solid white;
-  color: black;
+  border: 1px solid rgb(112, 112, 104);
+  color: white;
   text-align: center;
   padding: 2px;
   margin-right: 0.25%;
