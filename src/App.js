@@ -85,19 +85,11 @@ function createData(bodies, setStarData){
           let body = (Astronomy.Equator(bodies[i], localDate, localObserver, true, false))
           let bodyData = Astronomy.Horizon(localDate, localObserver, body.ra, body.dec, 'normal');
           if(bodyData.altitude >= 0){console.log(`${bodies[i]}: Above horizon`); 
-            let x = Math.sin(bodyData.azimuth*Astronomy.DEG2RAD)*Math.cos(bodyData.altitude*Astronomy.DEG2RAD);
-            let y = Math.cos(bodyData.azimuth*Astronomy.DEG2RAD)*Math.cos(bodyData.altitude*Astronomy.DEG2RAD);
-            let z = Math.sin(bodyData.altitude*Astronomy.DEG2RAD);
-            x = x/(z+1);
-            y = y/(z+1);
-            const X = (1*(1-x))
-            const Y = (1*(1-y))
             data.push(
               {
                 label: bodies[i].toString(),
                 //data:[{x:bodyData.azimuth, y:bodyData.altitude}],
                 data:[{x:1*(1-bodyData.altitude/90)*Math.cos(bodyData.azimuth*Astronomy.DEG2RAD), y:1*(1-bodyData.altitude/90)*Math.sin(bodyData.azimuth*Astronomy.DEG2RAD)}],
-                //data:[{x:X, y:Y}],
                 backgroundColor: 'rgb(255, 255,255)'
               });
           }
