@@ -27,10 +27,36 @@ function Scatterplot( {chartData} ){
                 data={chartData}
                 options={{
                     plugins:{
-                        title:{display:true, text:"horizon scatterplot"}
-                    },
-                    legend:{
-                        display:false
+                        title:{display:true, text:"horizon scatterplot"},
+                        legend:{
+                            display:false
+                        }
+                        
+                    },   
+                    aspectRatio:1,                    
+                    scales:{
+                        x: {
+                            min: -1,
+                            steps: 0.1,
+                            stepValue: 0.1,
+                            max: 1,  
+                            title:{
+                                display:true,
+                                text:"W (???)",
+                                color:"white"
+                            }
+                        },
+                        y:{
+                            min: -1,
+                            steps: 0.1,
+                            stepValue: 0.1,
+                            max: 1,
+                            title:{
+                                display:true,
+                                text:"S (???)",
+                                color:"white"
+                            }
+                        }
                     }
                 }}
             />

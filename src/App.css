@@ -3,6 +3,7 @@ body{
   font-family: 'Roboto';
   color: rgb(202, 206, 204);
   background-color: rgb(42, 42, 42);
+  overflow-x: hidden;
 }
 p{
   color: rgb(219, 227, 222);
@@ -34,7 +35,10 @@ hr{
   background-color: rgb(122, 122, 122);
 }
 
-
+.scatterplot{
+  width: 40vw;
+  margin-bottom: 6%;
+}
 .rippleButton {
   position: relative;
   overflow: hidden;

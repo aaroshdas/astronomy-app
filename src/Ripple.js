@@ -8,7 +8,6 @@ export function createRipple(event) {
     circle.style.left = `${event.clientX - button.offsetLeft - radius}px`;
     circle.style.top = `${event.clientY - button.offsetTop - radius}px`;
     circle.classList.add("ripple");
-
     const ripple = button.getElementsByClassName("ripple")[0];
 
     if (ripple) {

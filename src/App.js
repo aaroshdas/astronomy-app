@@ -22,11 +22,23 @@ function createHourString(date){
   let temp = parseInt(date).toString() +minStr + secStr;
   return temp;
 }
+const Astronomy = require('./astronomy.js');
+
+var localObserver = null
+navigator.geolocation.getCurrentPosition(function (position) {
+ 
+  let url = `https://api.open-elevation.com/api/v1/lookup?locations=${position.coords.latitude},${position.coords.longitude}`
+  axios.get(url)
+  .catch(function(){
+    console.log("axios error")
+  })
+  .then((response => {
+    localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, response.data['results'][0]['elevation']);
+  }));
+});
 
 function updateData(bodyObject){
   navigator.geolocation.getCurrentPosition(function (position) {
-    const Astronomy = require('./astronomy.js');
-
     const declination= position.coords.latitude;
   
     const localDate = new Date();    
@@ -40,14 +52,6 @@ function updateData(bodyObject){
     document.getElementById("dec").innerHTML = ("Local declination: " + declination.toFixed(5))
 
 
-    let url = `https://api.open-elevation.com/api/v1/lookup?locations=${position.coords.latitude},${position.coords.longitude}`
-    axios.get(url)
-    .catch(function(error){
-      console.log(error)
-    })
-    .then((response => {
-      if(response != null){
-        var localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, response.data['results'][0]['elevation'])      
         var body = (Astronomy.Equator(bodyObject, localDate, localObserver, true, false))
         document.getElementById("body").innerHTML = "Body: " + bodyObject;
 
@@ -59,49 +63,52 @@ function updateData(bodyObject){
         document.getElementById("altitude").innerHTML = "Altitude: " + bodyData.altitude.toFixed(5);
 
         if(bodyData.altitude >= 0){document.getElementById("relToHorizon").innerHTML = "Horizon: Above horizon"}
-        else{document.getElementById("relToHorizon").innerHTML = "Horizon: Below horizon"}
-      }
-    }));
-  });
+        else{document.getElementById("relToHorizon").innerHTML = "Horizon: Below horizon"}   
+    });
 }
 
-
-function createData(bodies, setStarData){
-  navigator.geolocation.getCurrentPosition(function (position) {
-    const Astronomy = require('./astronomy.js');
-
-    const localDate = new Date();    
-
-    let url = `https://api.open-elevation.com/api/v1/lookup?locations=${position.coords.latitude},${position.coords.longitude}`
-    axios.get(url)
-    .catch(function(error){
-      console.log(error)
-    })
-    .then((response => {
-      if(response != null){
-        const data = []
-        var localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, response.data['results'][0]['elevation'])
-        for(let i =0; i <bodies.length; i++){
-          let body = (Astronomy.Equator(bodies[i], localDate, localObserver, true, false))
-          let bodyData = Astronomy.Horizon(localDate, localObserver, body.ra, body.dec, 'normal');
-          if(bodyData.altitude >= 0){console.log(`${bodies[i]}: Above horizon`); 
-            data.push(
-              {
-                label: bodies[i].toString(),
-                //data:[{x:bodyData.azimuth, y:bodyData.altitude}],
-                data:[{x:1*(1-bodyData.altitude/90)*Math.cos(bodyData.azimuth*Astronomy.DEG2RAD), y:1*(1-bodyData.altitude/90)*Math.sin(bodyData.azimuth*Astronomy.DEG2RAD)}],
-                backgroundColor: 'rgb(255, 255,255)'
-              });
-          }
-          else{
-            console.log(`${bodies[i]}: Below horizon`)
-          }
-        }
-
-        setStarData({datasets: data});
+class Body{
+  constructor(label, ra, dec, localDate){
+      this.label = label;
+      let bodyData = Astronomy.Horizon(localDate, localObserver, ra, dec, 'normal');
+      this.altitude = bodyData.altitude;
+      this.azimuth = bodyData.azimuth;
+  }
+}    
+function createData(bodies, setStarData){ 
+    const data = []
+    for(let i =0; i <bodies.length; i++){
+      let bodyData = bodies[i]
+      if(bodyData.altitude >= 0){console.log(`${bodies[i].label}: Above horizon`); 
+        data.push({
+            label: bodies[i].label,
+            //data:[{x:bodyData.azimuth, y:bodyData.altitude}],
+            data:[{x:1*(1-bodyData.altitude/90)*Math.cos(bodyData.azimuth*Astronomy.DEG2RAD), y:1*(1-bodyData.altitude/90)*Math.sin(bodyData.azimuth*Astronomy.DEG2RAD)}],
+            backgroundColor: 'rgb(255, 255,255)'
+          });
       }
-    }));
-  });
+      else{
+        console.log(`${bodies[i].label}: Below horizon`)
+      }
+    }
+    setStarData({datasets: data});
+}
+
+function dataUpdater(setStarData){
+  if(localObserver !== null){
+    const rawBodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
+    const bodyObjects = []
+    for(let i = 0; i <rawBodies.length; i++){
+      const localDate = new Date(); 
+      let tempEquator = (Astronomy.Equator(rawBodies[i], localDate, localObserver, true, false))
+      bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec, localDate))
+    }    
+    createData(bodyObjects, setStarData)  
+    updateData(Astronomy.Body.Moon, "Body: Moon");
+  }
+  else{
+    setTimeout(dataUpdater, 500, setStarData)
+  }
 }
 
 function App() {
@@ -115,34 +122,15 @@ function App() {
       backgroundColor: 'rgb(255, 255,255)'
     }],
   });
-  const Astronomy = require('./astronomy.js');
-  console.log(starData)
   window.addEventListener("load", ()=>{
-    const bodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
-    createData(bodies, setStarData)      
-
-    updateData(Astronomy.Body.Moon, "Body: Moon");
-
-
-
     const buttons = document.getElementsByClassName("rippleButton");
     for (const button of buttons) {
       button.addEventListener("click", createRipple);
     }
+    dataUpdater(setStarData);
   });
   return (
   <div>
-    <div className='dataSeparator'>
-      <p>local data/zenith coords</p>
-      <hr/>
-      <main id = "longlat"></main>
-      <main id = "localDate"></main>
-      <main id = "utcDate"></main>
-      <main id = "RA"></main>
-      <main id = "dec"></main>
-      <hr/>
-    </div>
-
     <div className='dataSeparator'>
       <p>body coords in relation to observer</p>
       <div className='buttonContainer'>
@@ -166,7 +154,20 @@ function App() {
     <hr/>
     </div>
 
+    <div className='scatterplot'>
     <Scatterplot chartData={starData}></Scatterplot>
+    </div>
+
+    <div className='dataSeparator'>
+      <p>local data/zenith coords</p>
+      <hr/>
+      <main id = "longlat"></main>
+      <main id = "localDate"></main>
+      <main id = "utcDate"></main>
+      <main id = "RA"></main>
+      <main id = "dec"></main>
+      <hr/>
+    </div>
   </div>
   );
 }
