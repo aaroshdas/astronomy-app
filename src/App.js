@@ -94,7 +94,7 @@ function createData(bodies, setStarData){
         data.push({
             label: bodies[i].label,
             //data:[{x:bodyData.azimuth, y:bodyData.altitude}],
-            data:[{x:1*(1-bodyData.altitude/90)*Math.cos(bodyData.azimuth*Astronomy.DEG2RAD), y:1*(1-bodyData.altitude/90)*Math.sin(bodyData.azimuth*Astronomy.DEG2RAD)}],
+            data:[{x:1*(1-bodyData.altitude/90)*Math.sin(bodyData.azimuth*Astronomy.DEG2RAD), y:1*(1-bodyData.altitude/90)*Math.cos(bodyData.azimuth*Astronomy.DEG2RAD)}],
             backgroundColor: 'rgb(255, 255,255)'
           });
       }
@@ -141,6 +141,22 @@ function App() {
   return (
   <div>
     <div className='dataSeparator'>
+      <p>local data/zenith coords</p>
+      <hr/>
+      <Autocomplete setData={setStarData}></Autocomplete>
+      <main id = "longlat"></main>
+      
+      <main id = "localDate"></main>
+      <main id = "utcDate"></main>
+      <main id = "RA"></main>
+      <main id = "dec"></main>
+      <hr/>
+    </div>
+    <div className='scatterplot'>
+    <Scatterplot chartData={starData}></Scatterplot>
+    </div>
+   
+    <div className='starInfo'>
       <p>body coords in relation to observer</p>
       <div className='buttonContainer'>
         <button className = "rippleButton" onClick={()=>{updateData(Astronomy.Body.Sun);}}>sun</button>
@@ -161,23 +177,6 @@ function App() {
       <main id = "azimuth"></main>
       <main id = "altitude"></main>
     <hr/>
-    </div>
-
-    <div className='scatterplot'>
-    <Scatterplot chartData={starData}></Scatterplot>
-    </div>
-
-    <div className='dataSeparator'>
-      <p>local data/zenith coords</p>
-      <hr/>
-      <Autocomplete setData={setStarData}></Autocomplete>
-      <main id = "longlat"></main>
-      
-      <main id = "localDate"></main>
-      <main id = "utcDate"></main>
-      <main id = "RA"></main>
-      <main id = "dec"></main>
-      <hr/>
     </div>
   </div>
   );

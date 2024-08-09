@@ -42,7 +42,7 @@ function Scatterplot( {chartData} ){
                             max: 1,  
                             title:{
                                 display:true,
-                                text:"W (???)",
+                                text:"S (???)",
                                 color:"white"
                             }
                         },
@@ -53,7 +53,7 @@ function Scatterplot( {chartData} ){
                             max: 1,
                             title:{
                                 display:true,
-                                text:"S (???)",
+                                text:"W (???)",
                                 color:"white"
                             }
                         }

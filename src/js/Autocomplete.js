@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import countryStateCityList from '../cities/city-list.txt'
+import countryStateCityList from '../cities/city-list-countries.txt'
 
 import { dataUpdater, setLocation } from "../App";
 
@@ -69,7 +69,7 @@ function Autocomplete({setData}){
             <ul className="autocomplete-suggestions-list">
             {filteredSuggestions.slice(0,7).map((suggestion, index) => (
                 <li key = {index} className="autocomplete-suggestions-item" onClick={()=>handleSelect(suggestion)}>
-                    {suggestion.split(",")[0].toLowerCase()}
+                    {suggestion.split(",")[0].slice(0,1)}{suggestion.split(",")[0].slice(1, suggestion.length).toLowerCase()}, {suggestion.split(",")[3]}
 
                 </li>
             ))}
