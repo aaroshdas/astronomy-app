@@ -2,12 +2,13 @@ import './App.css';
 
 import React, { useState } from 'react'
 
-import axios from 'axios'
-
 import { createRipple } from './js/Ripple.js';
+
+import axios from 'axios'
 
 import Scatterplot from './js/Scatterplot.js';
 import Autocomplete from './js/Autocomplete.js';
+
 
 function createHourString(date){
   let seconds = ((date%1*100%1*1000)*600/10000).toFixed(0);
@@ -25,41 +26,57 @@ function createHourString(date){
 }
 const Astronomy = require('./js/astronomy.js');
 
+let timezone= -1
+
+const elevation = 351
+
 var localObserver = null
 navigator.geolocation.getCurrentPosition(function (position) {
- 
-  let url = `https://api.open-elevation.com/api/v1/lookup?locations=${position.coords.latitude},${position.coords.longitude}`
-  axios.get(url)
-  .catch(function(){
-    console.log("axios error")
-  })
-  .then((response => {
-    localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, response.data['results'][0]['elevation']);
-  }));
+ localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, elevation);
 });
+
 
 export function setLocation(lat, long){
   localObserver = null
-  let url = `https://api.open-elevation.com/api/v1/lookup?locations=${lat},${long}`
-  axios.get(url)
+  localObserver = new Astronomy.Observer(lat, long, elevation);
+
+  
+  let newURL = `http://api.timezonedb.com/v2.1/get-time-zone?key=41I0S90JC6N3&format=json&by=position&lat=${lat}&lng=${long}`
+  axios.get(newURL)
   .catch(function(){
     console.log("axios error")
   })
   .then((response => {
-    localObserver = new Astronomy.Observer(lat, long, response.data['results'][0]['elevation']);
+    timezone = (response.data["gmtOffset"])
   }));
+
   updateData(Astronomy.Body.Moon);
 }
+
+function GetDate(){
+  if(timezone !== -1){
+  const date = new Date()
+  const localTime = date.getTime()
+  const localOffset = date.getTimezoneOffset() * 60000
+  const utc = localTime + localOffset
+  var time = utc + (1000 * timezone)
+
+  const newDate = new Date(time);
+  return(newDate);
+  }
+  return new Date();
+}
+
 function updateData(bodyObject){
   if(localObserver != null){
     const declination= localObserver.latitude;
-    const localDate = new Date();    
+    const localDate = GetDate()
     const rawRA = Astronomy.SiderealTime(localDate)+localObserver.longitude/15.0+240.0;
     const rightAscension = rawRA - Math.floor(rawRA/24.0)*24.0;  
   
     document.getElementById("longlat").innerHTML = ("Latitude/longtitude: " + localObserver.latitude.toFixed(4).toString() + ", "+ localObserver.longitude.toFixed(4).toString())
     document.getElementById("localDate").innerHTML = ("Local time: " + localDate.toString().slice(16,25))
-    document.getElementById("utcDate").innerHTML = ("UTC time: " + localDate.toUTCString().slice(16,25))
+    document.getElementById("utcDate").innerHTML = ("UTC time: " + new Date().toUTCString().slice(16,25))
     document.getElementById("RA").innerHTML = ("Local right ascension: " + createHourString(rightAscension.toFixed(5)))
     document.getElementById("dec").innerHTML = ("Local declination: " + declination.toFixed(5))
 
@@ -110,7 +127,7 @@ export function dataUpdater(setStarData){
     const rawBodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
     const bodyObjects = []
     for(let i = 0; i <rawBodies.length; i++){
-      const localDate = new Date(); 
+      const localDate = GetDate()
       let tempEquator = (Astronomy.Equator(rawBodies[i], localDate, localObserver, true, false))
       bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec, localDate))
     }    
