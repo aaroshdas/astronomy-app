@@ -1,6 +1,9 @@
-.autocomplete-container{
+.autocomplete-city-container{
     width: 30vw;
     margin: auto;
+}
+.autocomplete-body-container{
+    width: 35vw;
 }
 .autocomplete-suggestions-list{
     background-color: rgba(255,255,255,0.05);

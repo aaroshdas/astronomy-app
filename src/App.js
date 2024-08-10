@@ -6,6 +6,7 @@ import axios from 'axios'
 
 import Scatterplot from './js/Scatterplot.js';
 import AutocompleteCities from './js/AutocompleteCities.js';
+import AutocompleteBodies from './js/AutocompleteBodies.js'
 
 const Astronomy = require('./js/astronomy.js');
 
@@ -70,6 +71,11 @@ function getLocalTime(){
   else{
     return new Date();
   }
+}
+
+export function setUpdateDataFromSuggestion(value){
+  let splitVal = value.split(",")
+  updateStarData(new Body(splitVal[0], Number(splitVal[1]), Number(splitVal[2]), new Date()))
 }
 
 function updateStarData(body){
@@ -137,12 +143,21 @@ function getBodyArray(){
     const rawBodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
     const bodyObjects = []
 
-    const localDate = new Date()
     for(let i = 0; i <rawBodies.length; i++){
-      let tempEquator = (Astronomy.Equator(rawBodies[i], localDate, localObserver, true, false));
-      bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec, localDate));
+      let tempEquator = (Astronomy.Equator(rawBodies[i], new Date(), localObserver, true, false));
+      bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec, new Date()));
     }
     return bodyObjects;   
+  }
+}
+function getBodySuggestions(){
+  if(localObserver !== null){
+    const bodyObjects = getBodyArray();
+    const suggestions = [];
+    for(let i = 0; i < bodyObjects.length; i++){
+      suggestions.push(`${bodyObjects[i].label.toString()},${bodyObjects[i].ra},${bodyObjects[i].dec},`)
+    }
+    return suggestions;
   }
 }
 
@@ -186,17 +201,8 @@ function App() {
     <div className='starInfo'>
       <p>body coords in relation to observer</p>
       <div className='buttonContainer'>
-        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[0]);}}>sun</button>
-        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[1]);}}>mercury</button>
-        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[2]);}}>venus</button>
-        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[3]);}}>moon</button>
-        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[4]);}}>mars</button>
-        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[5]);}}>jupiter</button>
-        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[6]);}}>uranus</button>
-        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[7]);}}>saturn</button>
-        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[8]);}}>neptune</button>
+        <AutocompleteBodies suggestions={getBodySuggestions()}/>
       </div>
-    <hr/>
       <main id = "body"></main>
       <main id = "relToHorizon"></main>
       <main id = "bodyRA"></main>
