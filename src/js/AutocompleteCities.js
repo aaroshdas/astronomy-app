@@ -6,14 +6,13 @@ import { dataUpdater, setLocation } from "../App";
 
 import "../css/Autocomplete.css"
 
-function Autocomplete({setData}){
+function AutocompleteCities({setData}){
     const [suggestions, setSuggestions] = useState([])
     const [lastValue, setLastValue] = useState(0)
     const [filteredSuggestions, setFilteredSuggestions] = useState([]);
     const [inputValue, setInputValue] = useState('')
 
     window.addEventListener("load", (event) => {
-        console.log("created city list")
         fetch(countryStateCityList)
         .then(r => r.text())
         .then( text =>{
@@ -31,7 +30,7 @@ function Autocomplete({setData}){
         setInputValue(event.target.value);
         setLastValue(event.target.value.length);
         let filtered = []
-        if(event.target.value.length > 5){
+        if(event.target.value.length > 4){
  
             if(lastValue >= event.target.value.length){
                 filtered = suggestions.filter(suggestion => suggestion.toLowerCase().includes(event.target.value.toLowerCase()));
@@ -40,7 +39,7 @@ function Autocomplete({setData}){
                 filtered = filteredSuggestions.filter(suggestion => suggestion.toLowerCase().includes(event.target.value.toLowerCase()));
             }
         }
-        else if(event.target.value.length === 5){
+        else if(event.target.value.length === 4){
             filtered = suggestions.filter(suggestion => suggestion.toLowerCase().includes(event.target.value.toLowerCase()));
         }
         else{
@@ -61,10 +60,10 @@ function Autocomplete({setData}){
             <input className="autocomplete-input"
                 id = 'searchBar'
                 type="text"
-                autoComplete="false"
+                autoComplete="off"
                 value={inputValue}
                 onChange={handleChange}
-                placeholder="Search..."
+                placeholder="Search cities..."
             />  
             <ul className="autocomplete-suggestions-list">
             {filteredSuggestions.slice(0,7).map((suggestion, index) => (
@@ -77,4 +76,4 @@ function Autocomplete({setData}){
         </div>
     );
 }
-export default Autocomplete;
+export default AutocompleteCities;
