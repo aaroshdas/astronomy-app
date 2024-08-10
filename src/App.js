@@ -50,7 +50,7 @@ export function setLocation(lat, long){
   updateStarData(Astronomy.Body.Moon);
 }
 
-function GetLocalDate(){
+function getLocalDate(){
   if(timezone !== -1){
   const date = new Date()
   const localTime = date.getTime()
@@ -63,20 +63,18 @@ function GetLocalDate(){
   }
   return new Date();
 }
-function updateStarData(bodyObject){
+
+function updateStarData(body){
   if(localObserver != null){
-  const localDate = GetLocalDate()
-  var body = (Astronomy.Equator(bodyObject, localDate, localObserver, true, false))
-  document.getElementById("body").innerHTML = "Body: " + bodyObject;
+  document.getElementById("body").innerHTML = "Body: " + body.label;
 
   document.getElementById("bodyRA").innerHTML = "Right ascension: "+ createHourString(body.ra);
   document.getElementById("bodyDec").innerHTML = "Declination: " + body.dec.toFixed(5);
 
-  var bodyData = Astronomy.Horizon(localDate, localObserver, body.ra, body.dec, 'normal');
-  document.getElementById("azimuth").innerHTML = "Azimuth: "+ bodyData.azimuth.toFixed(5);
-  document.getElementById("altitude").innerHTML = "Altitude: " + bodyData.altitude.toFixed(5);
+  document.getElementById("azimuth").innerHTML = "Azimuth: "+ body.azimuth.toFixed(5);
+  document.getElementById("altitude").innerHTML = "Altitude: " + body.altitude.toFixed(5);
 
-  if(bodyData.altitude >= 0){document.getElementById("relToHorizon").innerHTML = "Horizon: Above horizon"}
+  if(body.altitude >= 0){document.getElementById("relToHorizon").innerHTML = "Horizon: Above horizon"}
   else{document.getElementById("relToHorizon").innerHTML = "Horizon: Below horizon"}
   }
 }
@@ -84,7 +82,7 @@ function updateStarData(bodyObject){
 function updateLocalData(){
   if(localObserver != null){
     const declination= localObserver.latitude;
-    const localDate = GetLocalDate()
+    const localDate = getLocalDate()
     const rawRA = Astronomy.SiderealTime(localDate)+localObserver.longitude/15.0+240.0;
     const rightAscension = rawRA - Math.floor(rawRA/24.0)*24.0;  
   
@@ -99,11 +97,14 @@ function updateLocalData(){
 class Body{
   constructor(label, ra, dec){
       this.label = label;
-      let bodyData = Astronomy.Horizon(GetLocalDate(), localObserver, ra, dec, 'normal');
-      this.altitude = bodyData.altitude;
-      this.azimuth = bodyData.azimuth;
+      let bodyData = Astronomy.Horizon(getLocalDate(), localObserver, ra, dec, 'normal');
+      this.altitude = Number(bodyData.altitude);
+      this.azimuth = Number(bodyData.azimuth);
+      this.ra = Number(ra);
+      this.dec = Number(dec);
   }
 }    
+
 function createData(bodies, setStarData){ 
     const data = []
     for(let i =0; i <bodies.length; i++){
@@ -122,17 +123,24 @@ function createData(bodies, setStarData){
     setStarData({datasets: data});
 }
 
-export function dataUpdater(setStarData){
+function getBodyArray(){
   if(localObserver !== null){
     const rawBodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
     const bodyObjects = []
     for(let i = 0; i <rawBodies.length; i++){
-      const localDate = GetLocalDate()
+      const localDate = getLocalDate()
       let tempEquator = (Astronomy.Equator(rawBodies[i], localDate, localObserver, true, false))
       bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec))
-    }    
+    }
+    return bodyObjects;   
+  }
+}
+
+export function dataUpdater(setStarData){
+  if(localObserver !== null){
+    const bodyObjects = getBodyArray()
     createData(bodyObjects, setStarData)  
-    updateStarData(Astronomy.Body.Moon);
+    updateStarData(bodyObjects[0]);
     updateLocalData()
   }
   else{
@@ -168,15 +176,15 @@ function App() {
     <div className='starInfo'>
       <p>body coords in relation to observer</p>
       <div className='buttonContainer'>
-        <button className = "button" onClick={()=>{updateStarData(Astronomy.Body.Sun);}}>sun</button>
-        <button className = "button" onClick={()=>{updateStarData(Astronomy.Body.Mercury);}}>mercury</button>
-        <button className = "button" onClick={()=>{updateStarData(Astronomy.Body.Venus);}}>venus</button>
-        <button className = "button" onClick={()=>{updateStarData(Astronomy.Body.Moon);}}>moon</button>
-        <button className = "button" onClick={()=>{updateStarData(Astronomy.Body.Mars);}}>mars</button>
-        <button className = "button" onClick={()=>{updateStarData(Astronomy.Body.Jupiter);}}>jupiter</button>
-        <button className = "button" onClick={()=>{updateStarData(Astronomy.Body.Uranus);}}>uranus</button>
-        <button className = "button" onClick={()=>{updateStarData(Astronomy.Body.Saturn);}}>saturn</button>
-        <button className = "button" onClick={()=>{updateStarData(Astronomy.Body.Neptune);}}>neptune</button>
+        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[0]);}}>sun</button>
+        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[1]);}}>mercury</button>
+        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[2]);}}>venus</button>
+        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[3]);}}>moon</button>
+        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[4]);}}>mars</button>
+        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[5]);}}>jupiter</button>
+        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[6]);}}>uranus</button>
+        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[7]);}}>saturn</button>
+        <button className = "button" onClick={()=>{updateStarData(getBodyArray()[8]);}}>neptune</button>
       </div>
     <hr/>
       <main id = "body"></main>
