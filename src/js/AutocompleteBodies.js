@@ -3,7 +3,7 @@ import { useState } from "react";
 import "../css/Autocomplete.css"
 import { setUpdateDataFromSuggestion } from "../App";
 
-function AutocompleteBodies({suggestionsPromise}){
+function AutocompleteBodies({suggestionsPromise,setStarData,displaySettings}){
     const [lastValue, setLastValue] = useState(0)
     const [filteredSuggestions, setFilteredSuggestions] = useState([]);
     const [inputValue, setInputValue] = useState('')
@@ -39,7 +39,7 @@ function AutocompleteBodies({suggestionsPromise}){
     }
     const handleSelect = (value) =>{
         setFilteredSuggestions([]);
-        setUpdateDataFromSuggestion(value)
+        setUpdateDataFromSuggestion(value, setStarData,displaySettings)
         setInputValue("")
     }
 

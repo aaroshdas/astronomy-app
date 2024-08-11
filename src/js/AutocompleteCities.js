@@ -6,7 +6,7 @@ import { dataUpdater, setLocation } from "../App";
 
 import "../css/Autocomplete.css"
 
-function AutocompleteCities({setData, displaySettings}){
+function AutocompleteCities({setStarData, displaySettings}){
     const [suggestions, setSuggestions] = useState([])
     const [lastValue, setLastValue] = useState(0)
     const [filteredSuggestions, setFilteredSuggestions] = useState([]);
@@ -51,7 +51,7 @@ function AutocompleteCities({setData, displaySettings}){
     const handleSelect = (value) =>{
         setFilteredSuggestions([]);
         setLocation(Number(value.split(",")[1]), Number(value.split(",")[2]))
-        dataUpdater(setData, displaySettings)
+        dataUpdater(setStarData,displaySettings)
         setInputValue("")
     }
 

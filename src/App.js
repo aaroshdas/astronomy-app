@@ -18,7 +18,7 @@ var localObserver = null
 
 let timezone= -2
 
-
+let selectedBody = null;
 
 navigator.geolocation.getCurrentPosition(function (position) {
   localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, elevation);
@@ -77,13 +77,22 @@ function getLocalTime(){
   }
 }
 
-export function setUpdateDataFromSuggestion(value){
+export async function setUpdateDataFromSuggestion(value, setStarData,displaySettings){
   let splitVal = value.split(",")
-  updateStarData(new Body(splitVal[0], Number(splitVal[1]), Number(splitVal[2]), 1))
+  const newBody = new Body(splitVal[0], Number(splitVal[1]), Number(splitVal[2]), 1)
+  updateStarData(newBody)
+  if(newBody.altitude >0){
+  }
+  else{
+    selectedBody = null;
+  }
+  const bodyObjects = await getBodyArray(displaySettings)
+  createData(bodyObjects, setStarData)
 }
 
 function updateStarData(body){
   if(localObserver != null){
+    selectedBody = body;
   document.getElementById("body").innerHTML = "Body: " + body.label;
 
   document.getElementById("bodyRA").innerHTML = "Right ascension: "+ createHourString(body.ra);
@@ -131,20 +140,19 @@ function createData(bodies, setStarData){
       let bodyData = bodies[i]
       if(bodyData.altitude >= 0){ 
         let bgColor = 'rgb(255, 255,255)'
+        let importanceOffset = 0
         if(bodies[i].label === "Sun") {bgColor = 'rgb(255, 255,0)'}
-        // if(bodies[i].label === "Moon") {bgColor = 'rgb(125, 125, 125)'}
-        
+        if(selectedBody !== null){
+          if(bodies[i].label=== selectedBody.label){bgColor = 'rgb(255,0,0)'; importanceOffset += 0.5}
+        }
         data.push({
             label: bodies[i].label,
             data:[{x:1*(1-bodyData.altitude/90)*Math.sin(bodyData.azimuth*Astronomy.DEG2RAD), y:1*(1-bodyData.altitude/90)*Math.cos(bodyData.azimuth*Astronomy.DEG2RAD)}],
             backgroundColor: bgColor,
-            pointRadius: bodyData.importance
+            pointRadius: bodyData.importance+ importanceOffset
           });
       }
-      // else{
-      //   console.log(`${bodies[i].label}: Below horizon`)
-      // }
-    }
+      }
     setStarData({datasets: data});
 }
 const fileBodyObjects = []
@@ -214,15 +222,15 @@ async function getBodySuggestions(displaySettings){
   }
 }
 
-export async function dataUpdater(setStarData, displaySettings){
+export async function dataUpdater(setStarData,displaySettings){
   if(localObserver !== null && timezone !== -1){
     const bodyObjects = await getBodyArray(displaySettings)
     updateLocalData()
-    createData(bodyObjects, setStarData)  
     updateStarData(bodyObjects[0]);
+    createData(bodyObjects, setStarData)  
   }
   else{
-    setTimeout(dataUpdater, 500, setStarData, displaySettings)
+    setTimeout(dataUpdater, 500, setStarData,displaySettings)
   }
 }
 
@@ -239,7 +247,7 @@ function App() {
     <div className='dataSeparator'>
       <p>local data/zenith coords</p>
       <hr/>
-      <AutocompleteCities setData={setStarData}  displaySettings= {displaySettings}/>
+      <AutocompleteCities setStarData={setStarData} displaySettings= {displaySettings}/>
       <main id = "longlat"></main>
       
       <main id = "localDate"></main>
@@ -255,7 +263,7 @@ function App() {
     <div className='starInfo'>
       <p>body coords in relation to observer</p>
       <div className='buttonContainer'>
-        <AutocompleteBodies suggestionsPromise={getBodySuggestions(displaySettings)}/>
+        <AutocompleteBodies suggestionsPromise={getBodySuggestions(displaySettings)} displaySettings={displaySettings} setStarData={setStarData}/>
       </div>
       
       <button className = "button" onClick={()=>{setDisplaySettings([!displaySettings[0], displaySettings[1]]);dataUpdater(setStarData, [!displaySettings[0], displaySettings[1]])}}>
@@ -265,7 +273,6 @@ function App() {
       <button className = "button" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1]])}}>
         toggle unnamed objects
       </button>
-
       <main id = "body"></main>
       <main id = "relToHorizon"></main>
       <main id = "bodyRA"></main>
