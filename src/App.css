@@ -50,6 +50,7 @@ hr{
   float:left;
 }
 .button {
+  margin-bottom: 1%;
   position: relative;
   overflow: hidden;
   transition: background 400ms;

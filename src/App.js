@@ -8,6 +8,8 @@ import Scatterplot from './js/Scatterplot.js';
 import AutocompleteCities from './js/AutocompleteCities.js';
 import AutocompleteBodies from './js/AutocompleteBodies.js'
 
+import starFile from './stars/stars.txt'
+
 const Astronomy = require('./js/astronomy.js');
 
 
@@ -15,6 +17,7 @@ const elevation = 351
 var localObserver = null
 
 let timezone= -2
+
 
 navigator.geolocation.getCurrentPosition(function (position) {
   localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, elevation);
@@ -75,7 +78,7 @@ function getLocalTime(){
 
 export function setUpdateDataFromSuggestion(value){
   let splitVal = value.split(",")
-  updateStarData(new Body(splitVal[0], Number(splitVal[1]), Number(splitVal[2]), new Date()))
+  updateStarData(new Body(splitVal[0], Number(splitVal[1]), Number(splitVal[2]), new Date(), 1))
 }
 
 function updateStarData(body){
@@ -110,13 +113,14 @@ function updateLocalData(){
 }
 
 class Body{
-  constructor(label, ra, dec, localDate){
+  constructor(label, ra, dec, localDate, importance){
       this.label = label;
       let bodyData = Astronomy.Horizon(localDate, localObserver, ra, dec, 'normal');
       this.altitude = Number(bodyData.altitude);
       this.azimuth = Number(bodyData.azimuth);
       this.ra = Number(ra);
       this.dec = Number(dec);
+      this.importance = importance ;
   }
 }    
 
@@ -125,34 +129,69 @@ function createData(bodies, setStarData){
     for(let i =0; i <bodies.length; i++){
       let bodyData = bodies[i]
       if(bodyData.altitude >= 0){ 
+        let bgColor = 'rgb(255, 255,255)'
+        if(bodies[i].label === "Sun") {bgColor = 'rgb(255, 255,0)'}
+        if(bodies[i].label === "Moon") {bgColor = 'rgb(125, 125, 125)'}
+        
         data.push({
             label: bodies[i].label,
             data:[{x:1*(1-bodyData.altitude/90)*Math.sin(bodyData.azimuth*Astronomy.DEG2RAD), y:1*(1-bodyData.altitude/90)*Math.cos(bodyData.azimuth*Astronomy.DEG2RAD)}],
-            backgroundColor: 'rgb(255, 255,255)'
+            backgroundColor: bgColor,
+            pointRadius: bodyData.importance
           });
       }
-      else{
-        console.log(`${bodies[i].label}: Below horizon`)
-      }
+      // else{
+      //   console.log(`${bodies[i].label}: Below horizon`)
+      // }
     }
     setStarData({datasets: data});
 }
 
-function getBodyArray(){
-  if(localObserver !== null){
-    const rawBodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
-    const bodyObjects = []
+async function getBodiesFromFile(){
+  const fileBodyObjects = []
+  await fetch(starFile)
+  .then(r => r.text())
+  .then( text =>{
+      const currentDate = new Date();
+      let splitT = text.split("\n")
+      for(let i =0; i < splitT.length; i++){
+        let line = splitT[i].trim().split(",");
 
+        let label = splitT[i].trim().split(",")[0];
+        let raSplit = line[1].split(" ");
+        let ra = ((Number(raSplit[1].slice(0,-1))/60)+Number(raSplit[0].slice(0,-1)))
+
+        let decSplit = line[2].split(" ")
+        let dec = (Number(decSplit[0] + "."+ decSplit[1].slice(0,-1)))
+
+        fileBodyObjects.push(new Body(label, ra, dec, currentDate, 1))
+      }
+    })
+    return fileBodyObjects;
+}
+
+async function getBodyArray(useFileData){
+  if(localObserver !== null){
+    const bodyObjects = []
+    
+    const rawBodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
+    const currentDate = new Date()
     for(let i = 0; i <rawBodies.length; i++){
       let tempEquator = (Astronomy.Equator(rawBodies[i], new Date(), localObserver, true, false));
-      bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec, new Date()));
+      bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec,currentDate, 2.5));
     }
-    return bodyObjects;   
+    if(useFileData){
+      let file = await getBodiesFromFile();
+      for(let i = 0; i < file.length; i++){
+        bodyObjects.push(file[i])
+      }
+    }
+    return bodyObjects;  
   }
 }
-function getBodySuggestions(){
+async function getBodySuggestions(useFileData){
   if(localObserver !== null){
-    const bodyObjects = getBodyArray();
+    const bodyObjects = await getBodyArray(useFileData);
     const suggestions = [];
     for(let i = 0; i < bodyObjects.length; i++){
       suggestions.push(`${bodyObjects[i].label.toString()},${bodyObjects[i].ra},${bodyObjects[i].dec},`)
@@ -161,23 +200,23 @@ function getBodySuggestions(){
   }
 }
 
-export function dataUpdater(setStarData){
+export async function dataUpdater(setStarData, useFileData){
   if(localObserver !== null && timezone !== -1){
-    const bodyObjects = getBodyArray()
+    const bodyObjects = await getBodyArray(useFileData)
     updateLocalData()
     createData(bodyObjects, setStarData)  
     updateStarData(bodyObjects[0]);
   }
   else{
-    setTimeout(dataUpdater, 500, setStarData)
+    setTimeout(dataUpdater, 500, setStarData, useFileData)
   }
 }
 
 function App() {
   const [starData, setStarData] = useState({datasets: [{label: 'horizon scatterplot',data: [{}],backgroundColor: 'rgb(255, 255,255)'}],});
-  
+  const [useFileData, setUseFileData] = useState(true)
   window.addEventListener("load", ()=>{
-    dataUpdater(setStarData);
+      dataUpdater(setStarData, useFileData);
   });
 
   return (
@@ -185,7 +224,7 @@ function App() {
     <div className='dataSeparator'>
       <p>local data/zenith coords</p>
       <hr/>
-      <AutocompleteCities setData={setStarData}/>
+      <AutocompleteCities setData={setStarData}  useFileData= {useFileData}/>
       <main id = "longlat"></main>
       
       <main id = "localDate"></main>
@@ -201,8 +240,12 @@ function App() {
     <div className='starInfo'>
       <p>body coords in relation to observer</p>
       <div className='buttonContainer'>
-        <AutocompleteBodies suggestions={getBodySuggestions()}/>
+        <AutocompleteBodies suggestionsPromise={getBodySuggestions(useFileData)}/>
       </div>
+      
+      <button className = "button" onClick={()=>{setUseFileData(!useFileData);dataUpdater(setStarData, !useFileData)}}>
+        toggle extra solar objects
+      </button>
       <main id = "body"></main>
       <main id = "relToHorizon"></main>
       <main id = "bodyRA"></main>

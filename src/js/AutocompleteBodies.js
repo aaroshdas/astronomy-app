@@ -3,17 +3,23 @@ import { useState } from "react";
 import "../css/Autocomplete.css"
 import { setUpdateDataFromSuggestion } from "../App";
 
-function AutocompleteBodies({suggestions}){
+function AutocompleteBodies({suggestionsPromise}){
     const [lastValue, setLastValue] = useState(0)
     const [filteredSuggestions, setFilteredSuggestions] = useState([]);
     const [inputValue, setInputValue] = useState('')
-
     
+
+    let suggestions = []
+    if(suggestionsPromise !== undefined){
+        suggestionsPromise.then((value)=>{
+            suggestions= value;  
+    })};
     const handleChange = (event) => {
+
         setInputValue(event.target.value);
         setLastValue(event.target.value.length);
         let filtered = []
-        if(event.target.value.length > 3){
+        if(event.target.value.length > 2){
  
             if(lastValue >= event.target.value.length){
                 filtered = suggestions.filter(suggestion => suggestion.toLowerCase().includes(event.target.value.toLowerCase()));
@@ -22,7 +28,7 @@ function AutocompleteBodies({suggestions}){
                 filtered = filteredSuggestions.filter(suggestion => suggestion.toLowerCase().includes(event.target.value.toLowerCase()));
             }
         }
-        else if(event.target.value.length === 3){
+        else if(event.target.value.length === 2){
             filtered = suggestions.filter(suggestion => suggestion.toLowerCase().includes(event.target.value.toLowerCase()));
         }
         else{
