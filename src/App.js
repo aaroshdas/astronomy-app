@@ -8,7 +8,7 @@ import Scatterplot from './js/Scatterplot.js';
 import AutocompleteCities from './js/AutocompleteCities.js';
 import AutocompleteBodies from './js/AutocompleteBodies.js'
 
-import starFile from './stars/stars.txt'
+import starFile from './stars/bsc5.json'
 
 const Astronomy = require('./js/astronomy.js');
 
@@ -17,6 +17,7 @@ const elevation = 351
 var localObserver = null
 
 let timezone= -2
+
 
 
 navigator.geolocation.getCurrentPosition(function (position) {
@@ -78,7 +79,7 @@ function getLocalTime(){
 
 export function setUpdateDataFromSuggestion(value){
   let splitVal = value.split(",")
-  updateStarData(new Body(splitVal[0], Number(splitVal[1]), Number(splitVal[2]), new Date(), 1))
+  updateStarData(new Body(splitVal[0], Number(splitVal[1]), Number(splitVal[2]), 1))
 }
 
 function updateStarData(body){
@@ -113,9 +114,9 @@ function updateLocalData(){
 }
 
 class Body{
-  constructor(label, ra, dec, localDate, importance){
+  constructor(label, ra, dec, importance){
       this.label = label;
-      let bodyData = Astronomy.Horizon(localDate, localObserver, ra, dec, 'normal');
+      let bodyData = Astronomy.Horizon(new Date(), localObserver, ra, dec, 'normal');
       this.altitude = Number(bodyData.altitude);
       this.azimuth = Number(bodyData.azimuth);
       this.ra = Number(ra);
@@ -131,7 +132,7 @@ function createData(bodies, setStarData){
       if(bodyData.altitude >= 0){ 
         let bgColor = 'rgb(255, 255,255)'
         if(bodies[i].label === "Sun") {bgColor = 'rgb(255, 255,0)'}
-        if(bodies[i].label === "Moon") {bgColor = 'rgb(125, 125, 125)'}
+        // if(bodies[i].label === "Moon") {bgColor = 'rgb(125, 125, 125)'}
         
         data.push({
             label: bodies[i].label,
@@ -146,43 +147,55 @@ function createData(bodies, setStarData){
     }
     setStarData({datasets: data});
 }
-
-async function getBodiesFromFile(){
-  const fileBodyObjects = []
-  await fetch(starFile)
-  .then(r => r.text())
-  .then( text =>{
-      const currentDate = new Date();
-      let splitT = text.split("\n")
-      for(let i =0; i < splitT.length; i++){
-        let line = splitT[i].trim().split(",");
-
-        
-        let label = splitT[i].trim().split(",")[0];
-        let raSplit = line[1].split(" ");
-        let ra = ((Number(raSplit[1].slice(0,-1))/60)+Number(raSplit[0].slice(0,-1)))
-
-        let decSplit = line[2].split(" ")
-        let dec = (Number(decSplit[0] + "."+ decSplit[1].slice(0,-1)))
-
-        fileBodyObjects.push(new Body(label, ra, dec, currentDate, 1))
+const fileBodyObjects = []
+const allFileBodyObjects = []
+async function getBodiesFromFile(displaySettings){
+  if(fileBodyObjects.length === 0){
+    console.log("reading bsc5.json")
+    for(let i = 0; i < starFile.length; i++){
+      let rawDec = starFile[i]["Dec"];   
+      let dec = Number(rawDec.slice(1,3))+ ((Number(rawDec.slice(9, -1))*0.01)+Number(rawDec.slice(5, 7)))/60
+      if(rawDec.slice(0,1) === "-"){
+        dec = dec*-1
       }
-    })
-    return fileBodyObjects;
+      let rawRA = starFile[i]["RA"]
+      let ra = (Number(rawRA.slice(0,2)) + (Number(rawRA.slice(4,6))+(Number(rawRA.slice(8,12))*0.01))/60)
+      let name = "no name"
+      if(starFile[i].hasOwnProperty("Name")){name = starFile[i]["Name"]}
+      else if(displaySettings[1] === true){
+        allFileBodyObjects.push(new Body(name, ra, dec, 1))
+        continue;
+      }
+      allFileBodyObjects.push(new Body(name, ra, dec, 1))
+      fileBodyObjects.push(new Body(name, ra, dec, 1))
+    }
+  }
+  else{
+    const newDateFile= []
+    for(let i = 0; i < allFileBodyObjects.length; i++){
+      if(displaySettings[1] === true && allFileBodyObjects[i].label !== "no name"){
+        newDateFile.push(new Body(allFileBodyObjects[i].label, allFileBodyObjects[i].ra, allFileBodyObjects[i].dec, allFileBodyObjects[i].importance))
+      }
+      else if(displaySettings[1] === false){
+      newDateFile.push(new Body(allFileBodyObjects[i].label, allFileBodyObjects[i].ra, allFileBodyObjects[i].dec, allFileBodyObjects[i].importance))
+      }
+    }
+    return newDateFile;
+  }
+  return fileBodyObjects;
 }
 
-async function getBodyArray(useFileData){
+async function getBodyArray(displaySettings){
   if(localObserver !== null){
     const bodyObjects = []
     
     const rawBodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
-    const currentDate = new Date()
     for(let i = 0; i <rawBodies.length; i++){
       let tempEquator = (Astronomy.Equator(rawBodies[i], new Date(), localObserver, true, false));
-      bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec,currentDate, 2.5));
+      bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec, 2.5));
     }
-    if(useFileData){
-      let file = await getBodiesFromFile();
+    if(displaySettings[0] === true){
+      let file = await getBodiesFromFile(displaySettings);
       for(let i = 0; i < file.length; i++){
         bodyObjects.push(file[i])
       }
@@ -190,9 +203,9 @@ async function getBodyArray(useFileData){
     return bodyObjects;  
   }
 }
-async function getBodySuggestions(useFileData){
+async function getBodySuggestions(displaySettings){
   if(localObserver !== null){
-    const bodyObjects = await getBodyArray(useFileData);
+    const bodyObjects = await getBodyArray(displaySettings);
     const suggestions = [];
     for(let i = 0; i < bodyObjects.length; i++){
       suggestions.push(`${bodyObjects[i].label.toString()},${bodyObjects[i].ra},${bodyObjects[i].dec},`)
@@ -201,23 +214,24 @@ async function getBodySuggestions(useFileData){
   }
 }
 
-export async function dataUpdater(setStarData, useFileData){
+export async function dataUpdater(setStarData, displaySettings){
   if(localObserver !== null && timezone !== -1){
-    const bodyObjects = await getBodyArray(useFileData)
+    const bodyObjects = await getBodyArray(displaySettings)
     updateLocalData()
     createData(bodyObjects, setStarData)  
     updateStarData(bodyObjects[0]);
   }
   else{
-    setTimeout(dataUpdater, 500, setStarData, useFileData)
+    setTimeout(dataUpdater, 500, setStarData, displaySettings)
   }
 }
 
 function App() {
   const [starData, setStarData] = useState({datasets: [{label: 'horizon scatterplot',data: [{}],backgroundColor: 'rgb(255, 255,255)'}],});
-  const [useFileData, setUseFileData] = useState(true)
+  // ARRAY [use extra stars, only named stars]
+  const [displaySettings, setDisplaySettings] = useState([true, true])
   window.addEventListener("load", ()=>{
-      dataUpdater(setStarData, useFileData);
+      dataUpdater(setStarData, displaySettings);
   });
 
   return (
@@ -225,7 +239,7 @@ function App() {
     <div className='dataSeparator'>
       <p>local data/zenith coords</p>
       <hr/>
-      <AutocompleteCities setData={setStarData}  useFileData= {useFileData}/>
+      <AutocompleteCities setData={setStarData}  displaySettings= {displaySettings}/>
       <main id = "longlat"></main>
       
       <main id = "localDate"></main>
@@ -241,12 +255,17 @@ function App() {
     <div className='starInfo'>
       <p>body coords in relation to observer</p>
       <div className='buttonContainer'>
-        <AutocompleteBodies suggestionsPromise={getBodySuggestions(useFileData)}/>
+        <AutocompleteBodies suggestionsPromise={getBodySuggestions(displaySettings)}/>
       </div>
       
-      <button className = "button" onClick={()=>{setUseFileData(!useFileData);dataUpdater(setStarData, !useFileData)}}>
+      <button className = "button" onClick={()=>{setDisplaySettings([!displaySettings[0], displaySettings[1]]);dataUpdater(setStarData, [!displaySettings[0], displaySettings[1]])}}>
         toggle extra solar objects
       </button>
+
+      <button className = "button" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1]])}}>
+        toggle unnamed objects
+      </button>
+
       <main id = "body"></main>
       <main id = "relToHorizon"></main>
       <main id = "bodyRA"></main>
