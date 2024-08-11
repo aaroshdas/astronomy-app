@@ -49,6 +49,9 @@ hr{
   margin-bottom: 6%;
   float:left;
 }
+.checkbox{
+  margin-bottom: 1%;
+}
 .button {
   margin-bottom: 1%;
   position: relative;

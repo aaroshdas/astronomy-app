@@ -143,7 +143,7 @@ function createData(bodies, setStarData){
         let importanceOffset = 0
         if(bodies[i].label === "Sun") {bgColor = 'rgb(255, 255,0)'}
         if(selectedBody !== null){
-          if(bodies[i].label=== selectedBody.label){bgColor = 'rgb(255,0,0)'; importanceOffset += 0.5}
+          if(bodies[i].label=== selectedBody.label){bgColor = 'rgb(232, 65, 65)'; importanceOffset += 0.5}
         }
         data.push({
             label: bodies[i].label,
@@ -265,14 +265,15 @@ function App() {
       <div className='buttonContainer'>
         <AutocompleteBodies suggestionsPromise={getBodySuggestions(displaySettings)} displaySettings={displaySettings} setStarData={setStarData}/>
       </div>
-      
-      <button className = "button" onClick={()=>{setDisplaySettings([!displaySettings[0], displaySettings[1]]);dataUpdater(setStarData, [!displaySettings[0], displaySettings[1]])}}>
-        toggle extra solar objects
-      </button>
-
-      <button className = "button" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1]])}}>
-        toggle unnamed objects
-      </button>
+    
+      <div className = 'checkbox'>
+        <input type="checkbox" id="extra-solar" onClick={()=>{setDisplaySettings([!displaySettings[0], displaySettings[1]]);dataUpdater(setStarData, [!displaySettings[0], displaySettings[1]])}} defaultChecked/>
+        <label htmlFor ="extra-solar">show extra solar objects</label>
+      </div>
+      <div className = 'checkbox'>
+        <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1]])}}/>
+        <label htmlFor ="show-unnamed">show unnamed objects</label>
+      </div>
       <main id = "body"></main>
       <main id = "relToHorizon"></main>
       <main id = "bodyRA"></main>
