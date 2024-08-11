@@ -157,6 +157,7 @@ async function getBodiesFromFile(){
       for(let i =0; i < splitT.length; i++){
         let line = splitT[i].trim().split(",");
 
+        
         let label = splitT[i].trim().split(",")[0];
         let raSplit = line[1].split(" ");
         let ra = ((Number(raSplit[1].slice(0,-1))/60)+Number(raSplit[0].slice(0,-1)))
