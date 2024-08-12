@@ -23,7 +23,7 @@ let selectedBody = null;
 navigator.geolocation.getCurrentPosition(function (position) {
   localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, elevation);
   
-  let newURL = `http://api.timezonedb.com/v2.1/get-time-zone?key=41I0S90JC6N3&format=json&by=position&lat=${position.coords.latitude}&lng=${position.coords.longitude}`
+  let newURL = `https://api.timezonedb.com/v2.1/get-time-zone?key=41I0S90JC6N3&format=json&by=position&lat=${position.coords.latitude}&lng=${position.coords.longitude}`
   axios.get(newURL)
   .catch(function(){
     console.log("axios error")
