@@ -52,7 +52,7 @@ export function setLocation(lat, long){
   localObserver = null
   localObserver = new Astronomy.Observer(lat, long, elevation);
   timezone = -1
-  let newURL = `http://api.timezonedb.com/v2.1/get-time-zone?key=41I0S90JC6N3&format=json&by=position&lat=${lat}&lng=${long}`
+  let newURL = `https://api.timezonedb.com/v2.1/get-time-zone?key=41I0S90JC6N3&format=json&by=position&lat=${lat}&lng=${long}`
   axios.get(newURL)
   .catch(function(){
     console.log("axios error")
