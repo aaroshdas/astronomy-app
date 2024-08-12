@@ -79,7 +79,7 @@ function getLocalTime(){
 
 export async function setUpdateDataFromSuggestion(value, setStarData,displaySettings){
   let splitVal = value.split(",")
-  const newBody = new Body(splitVal[0], Number(splitVal[1]), Number(splitVal[2]), 1)
+  const newBody = new Body(splitVal[0], Number(splitVal[1]), Number(splitVal[2]), Number(splitVal[3]), 1)
   updateStarData(newBody)
   if(newBody.altitude >0){
   }
@@ -94,6 +94,7 @@ function updateStarData(body){
   if(localObserver != null){
     selectedBody = body;
   document.getElementById("body").innerHTML = "Body: " + body.label;
+  document.getElementById("mag").innerHTML = "Visual Magnitude: " + body.mag.toFixed(5);
 
   document.getElementById("bodyRA").innerHTML = "Right ascension: "+ createHourString(body.ra);
   document.getElementById("bodyDec").innerHTML = "Declination: " + body.dec.toFixed(5);
@@ -123,14 +124,15 @@ function updateLocalData(){
 }
 
 class Body{
-  constructor(label, ra, dec, importance){
+  constructor(label, ra, dec, mag, importance){
       this.label = label;
       let bodyData = Astronomy.Horizon(new Date(), localObserver, ra, dec, 'normal');
       this.altitude = Number(bodyData.altitude);
       this.azimuth = Number(bodyData.azimuth);
       this.ra = Number(ra);
       this.dec = Number(dec);
-      this.importance = importance ;
+      this.importance = importance;
+      this.mag = mag;
   }
 }    
 
@@ -141,10 +143,23 @@ function createData(bodies, setStarData){
       if(bodyData.altitude >= 0){ 
         let bgColor = 'rgb(255, 255,255)'
         let importanceOffset = 0
-        if(bodies[i].label === "Sun") {bgColor = 'rgb(255, 255,0)'}
-        if(selectedBody !== null){
-          if(bodies[i].label=== selectedBody.label){bgColor = 'rgb(232, 65, 65)'; importanceOffset += 0.5}
+        
+        if(bodies[i].importance<=1){
+          importanceOffset += (bodyData.mag - 5 )*-0.25
+          bgColor = `rgb(255, 255, ${255-(bodyData.mag - 6 )*-10 })`
         }
+        else{
+          importanceOffset += (bodyData.mag - 5 )*-0.075
+          bgColor = `rgb(255, 255, ${255-(bodyData.mag - 6 )*-5 })`
+        }
+        if(bodies[i].label === "Sun") {bgColor = 'rgb(255, 255,0)';importanceOffset+=0.35}
+
+
+        if(selectedBody !== null){
+          if(bodies[i].label=== selectedBody.label){bgColor = 'rgb(232, 65, 65)'; importanceOffset +=1}
+        }
+
+
         data.push({
             label: bodies[i].label,
             data:[{x:1*(1-bodyData.altitude/90)*Math.sin(bodyData.azimuth*Astronomy.DEG2RAD), y:1*(1-bodyData.altitude/90)*Math.cos(bodyData.azimuth*Astronomy.DEG2RAD)}],
@@ -159,33 +174,40 @@ const fileBodyObjects = []
 const allFileBodyObjects = []
 async function getBodiesFromFile(displaySettings){
   if(fileBodyObjects.length === 0){
-    console.log("reading bsc5.json")
+    console.log("reading bsc5 file")
     for(let i = 0; i < starFile.length; i++){
       let rawDec = starFile[i]["Dec"];   
       let dec = Number(rawDec.slice(1,3))+ ((Number(rawDec.slice(9, -1))*0.01)+Number(rawDec.slice(5, 7)))/60
       if(rawDec.slice(0,1) === "-"){
         dec = dec*-1
       }
+
       let rawRA = starFile[i]["RA"]
       let ra = (Number(rawRA.slice(0,2)) + (Number(rawRA.slice(4,6))+(Number(rawRA.slice(8,12))*0.01))/60)
       let name = "no name"
+      let mag = Number(starFile[i]["Vmag"])
+      let newBody = new Body(name, ra, dec, mag,1)
+
       if(starFile[i].hasOwnProperty("Name")){name = starFile[i]["Name"]}
       else if(displaySettings[1] === true){
-        allFileBodyObjects.push(new Body(name, ra, dec, 1))
+        allFileBodyObjects.push(newBody)
         continue;
       }
-      allFileBodyObjects.push(new Body(name, ra, dec, 1))
-      fileBodyObjects.push(new Body(name, ra, dec, 1))
+      newBody = new Body(name, ra, dec, mag,1)
+      allFileBodyObjects.push(newBody)
+      fileBodyObjects.push(newBody)
     }
   }
   else{
     const newDateFile= []
     for(let i = 0; i < allFileBodyObjects.length; i++){
-      if(displaySettings[1] === true && allFileBodyObjects[i].label !== "no name"){
-        newDateFile.push(new Body(allFileBodyObjects[i].label, allFileBodyObjects[i].ra, allFileBodyObjects[i].dec, allFileBodyObjects[i].importance))
-      }
-      else if(displaySettings[1] === false){
-      newDateFile.push(new Body(allFileBodyObjects[i].label, allFileBodyObjects[i].ra, allFileBodyObjects[i].dec, allFileBodyObjects[i].importance))
+      if(Number(displaySettings[2]) > allFileBodyObjects[i].mag){
+        if(displaySettings[1] === true && allFileBodyObjects[i].label !== "no name"){
+          newDateFile.push(new Body(allFileBodyObjects[i].label, allFileBodyObjects[i].ra, allFileBodyObjects[i].dec, allFileBodyObjects[i].mag, allFileBodyObjects[i].importance))
+        }
+        else if(displaySettings[1] === false){
+          newDateFile.push(new Body(allFileBodyObjects[i].label, allFileBodyObjects[i].ra, allFileBodyObjects[i].dec, allFileBodyObjects[i].mag, allFileBodyObjects[i].importance))
+        }
       }
     }
     return newDateFile;
@@ -199,8 +221,9 @@ async function getBodyArray(displaySettings){
     
     const rawBodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
     for(let i = 0; i <rawBodies.length; i++){
+      let mag = Astronomy.Illumination(rawBodies[3], new Date())["mag"]
       let tempEquator = (Astronomy.Equator(rawBodies[i], new Date(), localObserver, true, false));
-      bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec, 2.5));
+      bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec, mag,2.5));
     }
     if(displaySettings[0] === true){
       let file = await getBodiesFromFile(displaySettings);
@@ -216,7 +239,7 @@ async function getBodySuggestions(displaySettings){
     const bodyObjects = await getBodyArray(displaySettings);
     const suggestions = [];
     for(let i = 0; i < bodyObjects.length; i++){
-      suggestions.push(`${bodyObjects[i].label.toString()},${bodyObjects[i].ra},${bodyObjects[i].dec},`)
+      suggestions.push(`${bodyObjects[i].label.toString()},${bodyObjects[i].ra},${bodyObjects[i].dec},${bodyObjects[i].mag}`)
     }
     return suggestions;
   }
@@ -237,7 +260,7 @@ export async function dataUpdater(setStarData,displaySettings){
 function App() {
   const [starData, setStarData] = useState({datasets: [{label: 'horizon scatterplot',data: [{}],backgroundColor: 'rgb(255, 255,255)'}],});
   // ARRAY [use extra stars, only named stars]
-  const [displaySettings, setDisplaySettings] = useState([true, true])
+  const [displaySettings, setDisplaySettings] = useState([true, true, 8])
   window.addEventListener("load", ()=>{
       dataUpdater(setStarData, displaySettings);
   });
@@ -267,15 +290,21 @@ function App() {
       </div>
     
       <div className = 'checkbox'>
-        <input type="checkbox" id="extra-solar" onClick={()=>{setDisplaySettings([!displaySettings[0], displaySettings[1]]);dataUpdater(setStarData, [!displaySettings[0], displaySettings[1]])}} defaultChecked/>
+        <input type="checkbox" id="extra-solar" onClick={()=>{setDisplaySettings([!displaySettings[0], displaySettings[1], displaySettings[2]]);dataUpdater(setStarData, [!displaySettings[0], displaySettings[1], displaySettings[2]])}} defaultChecked/>
         <label htmlFor ="extra-solar">show extra solar objects</label>
       </div>
       <div className = 'checkbox'>
-        <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1]])}}/>
+        <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1], displaySettings[2]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1], displaySettings[2]])}}/>
         <label htmlFor ="show-unnamed">show unnamed objects</label>
+      </div>
+      <div className='vMagSetter'>
+        <main>set max extra solar vmag:</main>
+        <input id = "minMag" defaultValue={displaySettings[2]} type = "number" max = "12" placeholder='max visual magnitude...'/>
+        <button className='button' onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value]) }}>submit</button>
       </div>
       <main id = "body"></main>
       <main id = "relToHorizon"></main>
+      <main id = "mag"></main>
       <main id = "bodyRA"></main>
       <main id = "bodyDec"></main>
       <main id = "azimuth"></main>
