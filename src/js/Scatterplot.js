@@ -20,7 +20,10 @@ import {
     Tooltip,
     Legend
   );
-function Scatterplot( {chartData} ){
+function Scatterplot( {chartData, render} ){
+    if(render===false){
+        return(<div></div>);
+    }
     return(
         <div>
             <Scatter

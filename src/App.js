@@ -257,12 +257,43 @@ export async function dataUpdater(setStarData,displaySettings){
   }
 }
 
+// function getStarAPI(){
+//   let options = {
+//     method: 'GET',
+//     headers: { 'x-api-key': 'vffoINVuhjl5U06QJ8cIsQ==Zr401BBv29T4cfew' }
+//   }
+  
+//   let url = 'https://api.api-ninjas.com/v1/stars?max_apparent_magnitude=1&?offset=2'
+  
+//   fetch(url,options)
+//   .then(res => res.json()) 
+//   .then(data => {
+//     console.log(data)
+//   })
+//   .catch(err => {
+//       console.log(`error ${err}`)
+//   }); 
+
+// }
+let callLoadOnce = false;
 function App() {
+  const [renderGraph, setRenderGraph] = useState(false);
   const [starData, setStarData] = useState({datasets: [{label: 'horizon scatterplot',data: [{}],backgroundColor: 'rgb(255, 255,255)'}],});
   // ARRAY [use extra stars, only named stars]
   const [displaySettings, setDisplaySettings] = useState([true, true, 8])
   window.addEventListener("load", ()=>{
       dataUpdater(setStarData, displaySettings);
+      if(callLoadOnce === false){
+        document.getElementById("show-big-horizon").addEventListener("click", ()=>{
+          if(document.getElementById("big-scattorplot").classList.contains('drop-down-full')){
+            document.getElementById("big-scattorplot").classList.remove('drop-down-full')
+          }else{
+            document.getElementById("big-scattorplot").classList.add('drop-down-full')
+          }
+        });
+        callLoadOnce = true;
+      }
+      
   });
 
   return (
@@ -279,8 +310,21 @@ function App() {
       <main id = "dec"></main>
       <hr/>
     </div>
+
+    <div>
+      <div className='center-button'>
+        <button id="show-big-horizon" style={{padding:"0.75%"}} className='button' onClick={()=>{setRenderGraph(!renderGraph)}}><span>Show horizon</span></button>
+      </div>
+
+      <div className='biggerScatterplot'>
+        <div id ="big-scattorplot" className = "dropdown-small" style={{display:'none'}}>
+          <Scatterplot chartData={starData} render={renderGraph}></Scatterplot>
+        </div>
+      </div>
+    </div>
+
     <div className='scatterplot'>
-    <Scatterplot chartData={starData}></Scatterplot>
+    <Scatterplot chartData={starData} render={true}></Scatterplot>
     </div>
    
     <div className='starInfo'>
@@ -300,7 +344,7 @@ function App() {
       <div className='vMagSetter'>
         <main>set max extra solar vmag:</main>
         <input id = "minMag" defaultValue={displaySettings[2]} type = "number" max = "12" placeholder='max visual magnitude...'/>
-        <button className='button' onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value]) }}>submit</button>
+        <button className='button' onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value]) }}><span>submit</span></button>
       </div>
       <main id = "body"></main>
       <main id = "relToHorizon"></main>
@@ -311,6 +355,7 @@ function App() {
       <main id = "altitude"></main>
     <hr/>
     </div>
+    {/* <button onClick={()=>{getStarAPI()}}>get star api</button> */}
   </div>
   );
 }
