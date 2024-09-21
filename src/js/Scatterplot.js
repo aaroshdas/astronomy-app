@@ -9,6 +9,7 @@ import {
     Title,
     Tooltip,
     Legend,
+    Filler,
   } from 'chart.js';
   
   ChartJS.register(
@@ -18,7 +19,8 @@ import {
     LineElement,
     Title,
     Tooltip,
-    Legend
+    Legend,
+    Filler
   );
 function Scatterplot( {chartData, render} ){
     if(render===false){

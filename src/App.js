@@ -164,10 +164,31 @@ function createData(bodies, setStarData){
             label: bodies[i].label,
             data:[{x:1*(1-bodyData.altitude/90)*Math.sin(bodyData.azimuth*Astronomy.DEG2RAD), y:1*(1-bodyData.altitude/90)*Math.cos(bodyData.azimuth*Astronomy.DEG2RAD)}],
             backgroundColor: bgColor,
-            pointRadius: bodyData.importance+ importanceOffset
+            pointRadius: bodyData.importance+ importanceOffset,
           });
+        }
       }
-      }
+      data.push({
+        data:[
+          {x:0, y:-1},
+          {x:0.12,y:-0.99277},
+          {x:0.70711,y:-0.70711},
+          {x:1, y:0},
+          {x:0.70711,y:0.70711},
+          {x:0, y:1},
+          {x:-0.70711,y:0.70711},
+          {x:-1, y:0},
+          {x:-0.70711,y:-0.70711},
+          {x:-0.12,y:-0.99277},
+          {x:0, y:-1},
+        ],
+        tension: 0.4,
+        pointRadius:0,
+        borderColor: 'rgba(255,0,0, 0.5)',
+        borderWidth:0.4,
+        showLine: true
+        
+      })
     setStarData({datasets: data});
 }
 const fileBodyObjects = []
