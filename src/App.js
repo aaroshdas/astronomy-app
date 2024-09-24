@@ -296,6 +296,10 @@ export async function dataUpdater(setStarData,displaySettings){
 //   }); 
 
 // }
+function reformatStarData(starData){
+  const newL = starData['datasets'].slice(0, -1)
+  return {datasets: newL}
+}
 let callLoadOnce = false;
 function App() {
   const [renderGraph, setRenderGraph] = useState(false);
@@ -320,8 +324,9 @@ function App() {
   return (
   <div>
     <div className='dataSeparator'>
+      <div className='cityDataContainer'>
       <p>local data/zenith coords</p>
-      <hr/>
+      {/* <hr/> */}
       <AutocompleteCities setStarData={setStarData} displaySettings= {displaySettings}/>
       <main id = "longlat"></main>
       
@@ -329,7 +334,10 @@ function App() {
       <main id = "utcDate"></main>
       <main id = "RA"></main>
       <main id = "dec"></main>
-      <hr/>
+  
+      <hr className = 'cityDataLine' />
+
+      </div>
     </div>
 
     <div>
@@ -339,42 +347,45 @@ function App() {
 
       <div className='biggerScatterplot'>
         <div id ="big-scattorplot" className = "dropdown-small" style={{display:'none'}}>
-          <Scatterplot chartData={starData} render={renderGraph}></Scatterplot>
+          <Scatterplot chartData={reformatStarData(starData)} render={renderGraph}></Scatterplot>
         </div>
       </div>
     </div>
 
-    <div className='scatterplot'>
-    <Scatterplot chartData={starData} render={true}></Scatterplot>
-    </div>
-   
-    <div className='starInfo'>
-      <p>body coords in relation to observer</p>
-      <div className='buttonContainer'>
-        <AutocompleteBodies suggestionsPromise={getBodySuggestions(displaySettings)} displaySettings={displaySettings} setStarData={setStarData}/>
+    <div className='bottomInfoContainer'>
+
+      <div className='scatterplot'>
+      <Scatterplot chartData={starData} render={true}></Scatterplot>
       </div>
     
-      <div className = 'checkbox'>
-        <input type="checkbox" id="extra-solar" onClick={()=>{setDisplaySettings([!displaySettings[0], displaySettings[1], displaySettings[2]]);dataUpdater(setStarData, [!displaySettings[0], displaySettings[1], displaySettings[2]])}} defaultChecked/>
-        <label htmlFor ="extra-solar">show extra solar objects</label>
+      <div className='starInfo'>
+        <p>body coords in relation to observer</p>
+        <div className='buttonContainer'>
+          <AutocompleteBodies suggestionsPromise={getBodySuggestions(displaySettings)} displaySettings={displaySettings} setStarData={setStarData}/>
+        </div>
+      
+        <div className = 'checkbox'>
+          <input type="checkbox" id="extra-solar" onClick={()=>{setDisplaySettings([!displaySettings[0], displaySettings[1], displaySettings[2]]);dataUpdater(setStarData, [!displaySettings[0], displaySettings[1], displaySettings[2]])}} defaultChecked/>
+          <label htmlFor ="extra-solar">show extra solar objects</label>
+        </div>
+        <div className = 'checkbox'>
+          <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1], displaySettings[2]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1], displaySettings[2]])}}/>
+          <label htmlFor ="show-unnamed">show unnamed objects</label>
+        </div>
+        <div className='vMagSetter'>
+          <main>set max extra solar vmag:</main>
+          <input id = "minMag" defaultValue={displaySettings[2]} type = "number" max = "12" placeholder='max visual magnitude...'/>
+          <button className='button' onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value]) }}><span>submit</span></button>
+        </div>
+        <main id = "body"></main>
+        <main id = "relToHorizon"></main>
+        <main id = "mag"></main>
+        <main id = "bodyRA"></main>
+        <main id = "bodyDec"></main>
+        <main id = "azimuth"></main>
+        <main id = "altitude"></main>
+        <hr className='infoDataLine'/>
       </div>
-      <div className = 'checkbox'>
-        <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1], displaySettings[2]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1], displaySettings[2]])}}/>
-        <label htmlFor ="show-unnamed">show unnamed objects</label>
-      </div>
-      <div className='vMagSetter'>
-        <main>set max extra solar vmag:</main>
-        <input id = "minMag" defaultValue={displaySettings[2]} type = "number" max = "12" placeholder='max visual magnitude...'/>
-        <button className='button' onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value]) }}><span>submit</span></button>
-      </div>
-      <main id = "body"></main>
-      <main id = "relToHorizon"></main>
-      <main id = "mag"></main>
-      <main id = "bodyRA"></main>
-      <main id = "bodyDec"></main>
-      <main id = "azimuth"></main>
-      <main id = "altitude"></main>
-    <hr/>
     </div>
     {/* <button onClick={()=>{getStarAPI()}}>get star api</button> */}
   </div>
