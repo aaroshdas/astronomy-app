@@ -278,24 +278,50 @@ export async function dataUpdater(setStarData,displaySettings){
   }
 }
 
-// function getStarAPI(){
-//   let options = {
-//     method: 'GET',
-//     headers: { 'x-api-key': 'vffoINVuhjl5U06QJ8cIsQ==Zr401BBv29T4cfew' }
-//   }
+function getStarAPI(displaySettings, setStarData){
+  // console.log(document.getElementById("star-API-name").value)
+  let options = {
+    method: 'GET',
+    headers: { 'x-api-key': 'vffoINVuhjl5U06QJ8cIsQ==Zr401BBv29T4cfew' }
+  }
+  const valName = document.getElementById("star-API-name").value
+  let url = `https://api.api-ninjas.com/v1/stars?name=${valName}`
   
-//   let url = 'https://api.api-ninjas.com/v1/stars?max_apparent_magnitude=1&?offset=2'
-  
-//   fetch(url,options)
-//   .then(res => res.json()) 
-//   .then(data => {
-//     console.log(data)
-//   })
-//   .catch(err => {
-//       console.log(`error ${err}`)
-//   }); 
-
-// }
+  fetch(url,options)
+  .then(res => res.json()) 
+  .then(async data => {
+    const ra =Number(data[0]['right_ascension'].slice(0, 2))+ (Number(data[0]['right_ascension'].slice(4, 6))/60) +(Number(data[0]['right_ascension'].slice(8, 10))/60)*0.01
+    //let dec = Number(data[0]['declination'].slice(0, 2))+ (Number(data[0]['declination'].slice(4, 6))/60) +(Number(data[0]['declination'].slice(8, 10))/60)*0.01
+    let decCoeff = -1
+    if(data[0]['declination'].slice(0,1) ===`+`){
+      decCoeff = 1
+    }
+    const dec = (decCoeff*Number(data[0]['declination'].slice(1, 3))+decCoeff*Number(data[0]['declination'].slice(5,7))*0.01 +decCoeff*Number(data[0]['declination'].slice(9,12))*0.0001)
+    let mag = 6
+    if(data[0]['apparent_magnitude'].slice(0,1) === "−"){
+      mag =-1* Number(data[0]['apparent_magnitude'].slice(1,data[0]['apparent_magnitude'].length))
+    }
+    else{
+      mag = Number(data[0]['apparent_magnitude'])
+    }
+    const newStar = new Body(data[0]['name'], ra, dec, mag, 1)
+    console.log(newStar)
+    updateStarData(newStar)
+    if(newStar.altitude >0){
+    }
+    else{
+      selectedBody = null;
+    }
+    const bodyObjects = await getBodyArray(displaySettings)
+    bodyObjects.push(newStar)
+    createData(bodyObjects, setStarData)
+    //see setUpdateDataFromSuggestions
+  })
+  .catch(err => {
+      console.log(`error ${err}`)
+  }); 
+  document.getElementById("star-API-name").value = ""
+}
 function reformatStarData(starData){
   const newL = starData['datasets'].slice(0, -1)
   return {datasets: newL}
@@ -326,7 +352,6 @@ function App() {
     <div className='dataSeparator'>
       <div className='cityDataContainer'>
       <p>local data/zenith coords</p>
-      {/* <hr/> */}
       <AutocompleteCities setStarData={setStarData} displaySettings= {displaySettings}/>
       <main id = "longlat"></main>
       
@@ -334,7 +359,6 @@ function App() {
       <main id = "utcDate"></main>
       <main id = "RA"></main>
       <main id = "dec"></main>
-  
       <hr className = 'cityDataLine' />
 
       </div>
@@ -342,7 +366,7 @@ function App() {
 
     <div>
       <div className='center-button'>
-        <button id="show-big-horizon" style={{padding:"0.75%"}} className='button' onClick={()=>{setRenderGraph(!renderGraph)}}><span>Show horizon</span></button>
+        <button id="show-big-horizon" style={{padding:"0.75%"}} className='button' onClick={()=>{setRenderGraph(!renderGraph)}}><span>Display horizon</span></button>
       </div>
 
       <div className='biggerScatterplot'>
@@ -363,7 +387,12 @@ function App() {
         <div className='buttonContainer'>
           <AutocompleteBodies suggestionsPromise={getBodySuggestions(displaySettings)} displaySettings={displaySettings} setStarData={setStarData}/>
         </div>
-      
+        <div className='getStarByNameContainer'>
+          <main>get star by name:</main>
+          <input className = "starInputBox" id = "star-API-name" type = "text" placeholder='get star by name...'/>
+          <button className='button' onClick={()=>{getStarAPI(displaySettings, setStarData)}}><span>submit</span></button>
+          <hr className='infoDataLine'/>
+        </div>
         <div className = 'checkbox'>
           <input type="checkbox" id="extra-solar" onClick={()=>{setDisplaySettings([!displaySettings[0], displaySettings[1], displaySettings[2]]);dataUpdater(setStarData, [!displaySettings[0], displaySettings[1], displaySettings[2]])}} defaultChecked/>
           <label htmlFor ="extra-solar">show extra solar objects</label>
@@ -374,7 +403,7 @@ function App() {
         </div>
         <div className='vMagSetter'>
           <main>set max extra solar vmag:</main>
-          <input id = "minMag" defaultValue={displaySettings[2]} type = "number" max = "12" placeholder='max visual magnitude...'/>
+          <input className= "inputBox" id = "minMag" defaultValue={displaySettings[2]} type = "number" max = "12" placeholder='max visual magnitude...'/>
           <button className='button' onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value]) }}><span>submit</span></button>
         </div>
         <main id = "body"></main>
@@ -387,7 +416,6 @@ function App() {
         <hr className='infoDataLine'/>
       </div>
     </div>
-    {/* <button onClick={()=>{getStarAPI()}}>get star api</button> */}
   </div>
   );
 }
