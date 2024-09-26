@@ -184,7 +184,7 @@ function createData(bodies, setStarData){
         ],
         tension: 0.4,
         pointRadius:0,
-        borderColor: 'rgba(255,0,0, 0.5)',
+        borderColor: 'rgba(255,255,255, 0.5)',
         borderWidth:0.4,
         showLine: true
         
