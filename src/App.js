@@ -379,7 +379,7 @@ function App() {
     <div className='bottomInfoContainer'>
 
       <div className='scatterplot'>
-      <Scatterplot chartData={starData} render={true}></Scatterplot>
+        <Scatterplot chartData={starData} render={true}></Scatterplot>
       </div>
     
       <div className='starInfo'>
