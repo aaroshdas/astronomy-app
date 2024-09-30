@@ -17,6 +17,7 @@ hr{
   border-color:rgb(42, 42, 42);
 }
 .inputBox{
+  width: 15%;
   border: 1px solid rgba(0,0,0,0.1);
   
   color:rgba(255,255,255,0.5);
@@ -84,10 +85,14 @@ hr{
 
 .scatterplot{
   margin-top: 3%;
-  width: 40vw;
-  padding:2%;
-  padding-right: 4%;
   margin-bottom: 6%;
+
+  width: 40vw;
+  padding-left: 2%;
+  padding-right: 4%;
+  padding-top: 3%;
+  padding-bottom: 5%;
+
   margin-left: 0.75%;
   float:left;
   border-radius: 20px;

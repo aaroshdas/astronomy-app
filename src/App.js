@@ -277,6 +277,21 @@ export async function dataUpdater(setStarData,displaySettings){
     setTimeout(dataUpdater, 500, setStarData,displaySettings)
   }
 }
+function bortleClassToVMag(bortle){
+  let val = parseInt(bortle)
+  if(val <1){return 9;}
+  else if(val <= 1){return 7.6;}
+  else if(val <=2){return 7.1;}
+  else if(val <=3){return 6.6;}
+  else if(val <=4){return 6.3;}
+  else if(val <=4.5){return 6.1;}
+  else if(val <=5){return 5.6;}
+  else if(val <=6){return 5.1;}
+  else if(val <=7){return 4.6;}
+  else if(val <=8){return 4.1;}
+  else if(val <=9){return 4.0;}
+  return 3;
+}
 
 function getStarAPI(displaySettings, setStarData){
   // console.log(document.getElementById("star-API-name").value)
@@ -405,7 +420,17 @@ function App() {
           <main>set max extra solar vmag:</main>
           <input className= "inputBox" id = "minMag" defaultValue={displaySettings[2]} type = "number" max = "12" placeholder='max visual magnitude...'/>
           <button className='button' onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value]) }}><span>submit</span></button>
+          
+          <main>use bortle class:</main>
+          <input className= "inputBox" id = "bortle" defaultValue={1} type = "number" max = "9" min="1" placeholder='bortle class...'   />
+          <button className='button' onClick={()=>{
+            setDisplaySettings([displaySettings[0],displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value)]);
+            dataUpdater(setStarData, [displaySettings[0], displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value)]); 
+            document.getElementById("minMag").value = bortleClassToVMag(document.getElementById("bortle").value)
+          }}><span>submit</span></button>
+        
         </div>
+
         <main id = "body"></main>
         <main id = "relToHorizon"></main>
         <main id = "mag"></main>
