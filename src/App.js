@@ -1,12 +1,20 @@
 import './App.css';
 
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import '@geoapify/geocoder-autocomplete/styles/minimal.css';
+
+import {
+  GeoapifyGeocoderAutocomplete,
+  GeoapifyContext
+} from '@geoapify/react-geocoder-autocomplete';
+
+
 
 import axios from 'axios'
 
 import Scatterplot from './js/Scatterplot.js';
 import AutocompleteCities from './js/AutocompleteCities.js';
-import AutocompleteBodies from './js/AutocompleteBodies.js'
+import AutocompleteBodies from './js/AutocompleteBodies.js';
 
 import starFile from './stars/bsc5.json'
 
@@ -351,10 +359,17 @@ function App() {
       dataUpdater(setStarData, displaySettings);
       if(callLoadOnce === false){
         document.getElementById("show-big-horizon").addEventListener("click", ()=>{
-          if(document.getElementById("big-scattorplot").classList.contains('drop-down-full')){
-            document.getElementById("big-scattorplot").classList.remove('drop-down-full')
+          if(document.getElementById("big-scattorplot").classList.contains('dropDownFull')){
+            document.getElementById("big-scattorplot").classList.remove('dropDownFull')
           }else{
-            document.getElementById("big-scattorplot").classList.add('drop-down-full')
+            document.getElementById("big-scattorplot").classList.add('dropDownFull')
+          }
+        });
+        document.getElementById("address").addEventListener("click", ()=>{
+          if(document.getElementById("address-dropdown").classList.contains('dropDownFull')){
+            document.getElementById("address-dropdown").classList.remove('dropDownFull')
+          }else{
+            document.getElementById("address-dropdown").classList.add('dropDownFull')
           }
         });
         callLoadOnce = true;
@@ -368,6 +383,32 @@ function App() {
       <div className='cityDataContainer'>
       <p>local data/zenith coords</p>
       <AutocompleteCities setStarData={setStarData} displaySettings= {displaySettings}/>
+
+      <div>
+        <button id="address" style={{padding:"1.5%"}} className='button addressButton'><span>Find by address</span></button>
+      </div>
+      <div id = "address-dropdown" className='addressAutocomplete dropDownSmall'>
+        <GeoapifyContext apiKey="e546f68274a546ac8129e9e82a49d8b4">
+          <GeoapifyGeocoderAutocomplete id = "address-autocomplete"
+            placeSelect={(value)=>{
+              if(value !== null){
+                console.log(value)
+                if(value["bbox"] !== undefined){
+                  setLocation(value["bbox"][1], value["bbox"][0]);
+                  dataUpdater(setStarData,displaySettings);
+                }
+                else if(value["geometry"] !== undefined){
+                  setLocation(value["geometry"]['coordinates'][1], value["geometry"]['coordinates'][0]);
+                  dataUpdater(setStarData,displaySettings);
+                }
+              }
+            }}
+          />
+        
+        </GeoapifyContext>
+
+      </div>
+
       <main id = "longlat"></main>
       
       <main id = "localDate"></main>
@@ -380,15 +421,16 @@ function App() {
     </div>
 
     <div>
-      <div className='center-button'>
+      <div className='centerButton'>
         <button id="show-big-horizon" style={{padding:"0.75%"}} className='button' onClick={()=>{setRenderGraph(!renderGraph)}}><span>Display horizon</span></button>
       </div>
 
       <div className='biggerScatterplot'>
-        <div id ="big-scattorplot" className = "dropdown-small" style={{display:'none'}}>
+        <div id ="big-scattorplot" className = "dropDownSmall" style={{display:'none'}}>
           <Scatterplot chartData={reformatStarData(starData)} render={renderGraph}></Scatterplot>
         </div>
       </div>
+
     </div>
 
     <div className='bottomInfoContainer'>

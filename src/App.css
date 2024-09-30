@@ -16,6 +16,12 @@ hr{
   margin-bottom: 1%;
   border-color:rgb(42, 42, 42);
 }
+.addressAutocomplete{
+  margin-left: auto;
+  margin-right: auto;
+  width: 70%;
+  margin-bottom: 5%;
+}
 .inputBox{
   width: 15%;
   border: 1px solid rgba(0,0,0,0.1);
@@ -93,6 +99,7 @@ hr{
   padding-top: 3%;
   padding-bottom: 5%;
 
+
   margin-left: 0.75%;
   float:left;
   border-radius: 20px;
@@ -104,12 +111,10 @@ hr{
   overflow: hidden;
   box-shadow: 0 0 1rem rgba(0,0,0, 0.3);
 }
-.drop-down-small{
+.dropDownSmall{
   display: none;
-  overflow: hidden;
 }
-
-.drop-down-full{
+.dropDownFull{
   display: block !important;
 }
 .checkbox{
@@ -129,8 +134,11 @@ hr{
   max-width: 90%;
   color: rgb(219, 227, 222);
 }
-.center-button{
+.centerButton{
   text-align: center;
+}
+.addressButton{
+  margin-bottom: 2% !important;
 }
 .button {
   margin-bottom: 1%;
