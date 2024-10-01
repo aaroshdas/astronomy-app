@@ -366,10 +366,10 @@ function App() {
           }
         });
         document.getElementById("address").addEventListener("click", ()=>{
-          if(document.getElementById("address-dropdown").classList.contains('dropDownFull')){
-            document.getElementById("address-dropdown").classList.remove('dropDownFull')
+          if(document.getElementById("address-dropdown").classList.contains('dropDownFullHeight')){
+            document.getElementById("address-dropdown").classList.remove('dropDownFullHeight')
           }else{
-            document.getElementById("address-dropdown").classList.add('dropDownFull')
+            document.getElementById("address-dropdown").classList.add('dropDownFullHeight')
           }
         });
         callLoadOnce = true;
@@ -386,7 +386,7 @@ function App() {
       <div>
         <button id="address" style={{padding:"1.5%"}} className='button addressButton'><span>Find by exact address</span></button>
       </div>
-      <div id = "address-dropdown" className='addressAutocomplete dropDownSmall'>
+      <div id = "address-dropdown" className='addressAutocomplete dropDownSmallHeight'>
         <GeoapifyContext apiKey="e546f68274a546ac8129e9e82a49d8b4">
           <GeoapifyGeocoderAutocomplete id = "address-autocomplete"
             placeholder='Find a specific address...'
@@ -396,10 +396,16 @@ function App() {
                 if(value["bbox"] !== undefined){
                   setLocation(value["bbox"][1], value["bbox"][0]);
                   dataUpdater(setStarData,displaySettings);
+                  if(document.getElementById("address-dropdown").classList.contains('dropDownFullHeight')){
+                    document.getElementById("address-dropdown").classList.remove('dropDownFullHeight')
+                  }
                 }
                 else if(value["geometry"] !== undefined){
                   setLocation(value["geometry"]['coordinates'][1], value["geometry"]['coordinates'][0]);
                   dataUpdater(setStarData,displaySettings);
+                  if(document.getElementById("address-dropdown").classList.contains('dropDownFullHeight')){
+                    document.getElementById("address-dropdown").classList.remove('dropDownFullHeight')
+                  }
                 }
               }
             }}
