@@ -27,6 +27,7 @@ var localObserver = null
 let timezone= -2
 
 let selectedBody = null;
+let currentDate = new Date(); 
 
 navigator.geolocation.getCurrentPosition(function (position) {
   localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, elevation);
@@ -72,7 +73,7 @@ export function setLocation(lat, long){
 
 function getLocalTime(){
   if(timezone >=0){
-    const date = new Date();
+    const date = currentDate;
     const localTime = date.getTime();
     const localOffset = date.getTimezoneOffset() * 60000;
     const utc = localTime + localOffset;
@@ -81,7 +82,7 @@ function getLocalTime(){
     return newDate;
   }
   else{
-    return new Date();
+    return currentDate;
   }
 }
 
@@ -120,21 +121,23 @@ function updateLocalData(){
     const declination= localObserver.latitude;
     const localDate = getLocalTime()
  
-    const rawRA = Astronomy.SiderealTime(new Date())+localObserver.longitude/15.0+240.0;
+    const rawRA = Astronomy.SiderealTime(currentDate)+localObserver.longitude/15.0+240.0;
     const rightAscension = rawRA - Math.floor(rawRA/24.0)*24.0;  
   
     document.getElementById("longlat").innerHTML = ("Latitude/longtitude: " + localObserver.latitude.toFixed(4).toString() + ", "+ localObserver.longitude.toFixed(4).toString())
     document.getElementById("localDate").innerHTML = ("Local time: " + localDate.toString().slice(16,25))
-    document.getElementById("utcDate").innerHTML = ("UTC time: " + new Date().toUTCString().slice(16,25))
+    document.getElementById("utcDate").innerHTML = ("UTC time: " + currentDate.toUTCString().slice(16,25))
+    document.getElementById("date").innerHTML = ("Local date: " + localDate.toString().slice(0, 16)) 
     document.getElementById("RA").innerHTML = ("Local right ascension: " + createHourString(rightAscension.toFixed(5)))
     document.getElementById("dec").innerHTML = ("Local declination: " + declination.toFixed(5)) 
+    
   }  
 }
 
 class Body{
   constructor(label, ra, dec, mag, importance){
       this.label = label;
-      let bodyData = Astronomy.Horizon(new Date(), localObserver, ra, dec, 'normal');
+      let bodyData = Astronomy.Horizon(currentDate, localObserver, ra, dec, 'normal');
       this.altitude = Number(bodyData.altitude);
       this.azimuth = Number(bodyData.azimuth);
       this.ra = Number(ra);
@@ -250,8 +253,8 @@ async function getBodyArray(displaySettings){
     
     const rawBodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
     for(let i = 0; i <rawBodies.length; i++){
-      let mag = Astronomy.Illumination(rawBodies[3], new Date())["mag"]
-      let tempEquator = (Astronomy.Equator(rawBodies[i], new Date(), localObserver, true, false));
+      let mag = Astronomy.Illumination(rawBodies[3], currentDate)["mag"]
+      let tempEquator = (Astronomy.Equator(rawBodies[i], currentDate, localObserver, true, false));
       bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec, mag,2.5));
     }
     if(displaySettings[0] === true){
@@ -349,6 +352,23 @@ function reformatStarData(starData){
   const newL = starData['datasets'].slice(0, -1)
   return {datasets: newL}
 }
+
+function setDate(setStarData, displaySettings){
+  let year = parseInt(document.getElementById("year").value)+0;
+  let month = parseInt(document.getElementById("month").value)-1;
+  let day = parseInt(document.getElementById("day").value)+0;
+  let hour = parseInt(document.getElementById("hour").value)+0;
+  if(year < 1900 || year > 2400 || isNaN(year)){year = 2024;}
+  if(month < 0 || month > 12 || isNaN(month)){month = 1;}
+  if(isNaN(day)){day=1;}
+  if(hour < 0 || hour > 24 || isNaN(hour)){hour = 12;}
+  
+  let newDate = new Date(year, month, day, hour)
+  console.log(newDate)
+  currentDate = newDate;
+  dataUpdater(setStarData,displaySettings);
+}
+
 let callLoadOnce = false;
 function App() {
   const [renderGraph, setRenderGraph] = useState(false);
@@ -372,6 +392,13 @@ function App() {
             document.getElementById("address-dropdown").classList.add('dropDownFullHeight')
           }
         });
+        document.getElementById("timeAndDate").addEventListener("click", ()=>{
+          if(document.getElementById("time-date-dropdown").classList.contains('dropDownFullHeight')){
+            document.getElementById("time-date-dropdown").classList.remove('dropDownFullHeight')
+          }else{
+            document.getElementById("time-date-dropdown").classList.add('dropDownFullHeight')
+          }
+        });
         callLoadOnce = true;
       }
       
@@ -384,8 +411,18 @@ function App() {
       <p>local data/zenith coords</p>
       <AutocompleteCities setStarData={setStarData} displaySettings= {displaySettings}/>
       <div>
-        <button id="address" style={{padding:"1.5%"}} className='button addressButton'><span>Find by exact address</span></button>
+        <button id="address" className='button addressButton'><span>Find by exact address</span></button>
+        <button id="timeAndDate" className='button addressButton'><span>Set date and time</span></button>
       </div>
+      
+      <div id = "time-date-dropdown" className = "dropDownSmallHeight date-dropdown-container">
+        <input defaultValue={currentDate.getFullYear()} id = "year" className = "dateInputBox" type = "number"  min = "1900" max = "2100" placeholder='YYYY'/>
+        <input defaultValue={currentDate.getUTCMonth()+1} id = "month" className = "dateInputBox" type = "number" min = "1" max = "12" placeholder='MM'/>
+        <input defaultValue={currentDate.getDate()} id = "day" className = "dateInputBox" type = "number" min = "0" placeholder='DD'/>
+        <input defaultValue={currentDate.getHours()} id = "hour" className = "dateInputBox" type = "number" min = "0" max = "24" placeholder='HH'/>
+        <button className='button' onClick={()=>{setDate(setStarData, displaySettings)}}><span>submit</span></button>
+      </div>
+
       <div id = "address-dropdown" className='addressAutocomplete dropDownSmallHeight'>
         <GeoapifyContext apiKey="e546f68274a546ac8129e9e82a49d8b4">
           <GeoapifyGeocoderAutocomplete id = "address-autocomplete"
@@ -419,6 +456,7 @@ function App() {
       
       <main id = "localDate"></main>
       <main id = "utcDate"></main>
+      <main id = "date"></main>
       <main id = "RA"></main>
       <main id = "dec"></main>
       <hr className = 'cityDataLine' />

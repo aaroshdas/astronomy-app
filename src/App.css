@@ -27,6 +27,16 @@ hr{
   border-radius: 3px;   
   margin-right: 1%;
 }
+.dateInputBox{
+  width: 10%;
+  border: 1px solid rgba(0,0,0,0.1);
+  
+  color:rgba(255,255,255,0.5);
+  background-color: rgba(0,0,0,0.05);
+  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.3);
+  border-radius: 3px;   
+  margin-right: 1%;
+}
 .starInputBox{
   border: 1px solid rgba(0,0,0,0.1);
   width: 70%;
@@ -125,6 +135,9 @@ hr{
   height: 40px !important;
   overflow: visible;
 }
+.date-dropdown-container{
+  transition: all .3s ease;
+}
 
 .addressAutocomplete{
   margin-left: auto;
@@ -160,6 +173,9 @@ hr{
 .addressButton{
   margin-bottom: 1% !important;
   border: 1px solid rgb(75,75,75) !important;
+  padding: 1.5% !important;
+  margin-right: 1.5% !important;
+  min-width: 35%;
 
 }
 .button {
