@@ -384,7 +384,7 @@ function App() {
       <p>local data/zenith coords</p>
       <AutocompleteCities setStarData={setStarData} displaySettings= {displaySettings}/>
       <div>
-        <button id="address" style={{padding:"1.5%"}} className='button addressButton'><span>Find by address</span></button>
+        <button id="address" style={{padding:"1.5%"}} className='button addressButton'><span>Find by exact address</span></button>
       </div>
       <div id = "address-dropdown" className='addressAutocomplete dropDownSmall'>
         <GeoapifyContext apiKey="e546f68274a546ac8129e9e82a49d8b4">
