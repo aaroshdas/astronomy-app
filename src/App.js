@@ -365,13 +365,13 @@ function App() {
             document.getElementById("big-scattorplot").classList.add('dropDownFull')
           }
         });
-        // document.getElementById("address").addEventListener("click", ()=>{
-        //   if(document.getElementById("address-dropdown").classList.contains('dropDownFull')){
-        //     document.getElementById("address-dropdown").classList.remove('dropDownFull')
-        //   }else{
-        //     document.getElementById("address-dropdown").classList.add('dropDownFull')
-        //   }
-        // });
+        document.getElementById("address").addEventListener("click", ()=>{
+          if(document.getElementById("address-dropdown").classList.contains('dropDownFull')){
+            document.getElementById("address-dropdown").classList.remove('dropDownFull')
+          }else{
+            document.getElementById("address-dropdown").classList.add('dropDownFull')
+          }
+        });
         callLoadOnce = true;
       }
       
@@ -383,7 +383,10 @@ function App() {
       <div className='cityDataContainer'>
       <p>local data/zenith coords</p>
       <AutocompleteCities setStarData={setStarData} displaySettings= {displaySettings}/>
-      <div id = "address-dropdown" className='addressAutocomplete'>
+      <div>
+        <button id="address" style={{padding:"1.5%"}} className='button addressButton'><span>Find by address</span></button>
+      </div>
+      <div id = "address-dropdown" className='addressAutocomplete dropDownSmall'>
         <GeoapifyContext apiKey="e546f68274a546ac8129e9e82a49d8b4">
           <GeoapifyGeocoderAutocomplete id = "address-autocomplete"
             placeholder='Find a specific address...'
