@@ -466,7 +466,7 @@ function App() {
 
     <div>
       <div className='centerButton'>
-        <button id="show-big-horizon" style={{padding:"0.75%"}} className='button' onClick={()=>{setRenderGraph(!renderGraph)}}><span>Display horizon</span></button>
+        <button id="show-big-horizon" style={{padding:"0.75%"}} className='button' onClick={()=>{setRenderGraph(!renderGraph)}}><span>Display complete horizon</span></button>
       </div>
 
       <div className='biggerScatterplot'>
@@ -489,8 +489,8 @@ function App() {
           <AutocompleteBodies suggestionsPromise={getBodySuggestions(displaySettings)} displaySettings={displaySettings} setStarData={setStarData}/>
         </div>
         <div className='getStarByNameContainer'>
-          <main>get star by name:</main>
-          <input className = "starInputBox" id = "star-API-name" type = "text" placeholder='get star by name...'/>
+          <main>get star by exact name:</main>
+          <input className = "starInputBox" id = "star-API-name" type = "text" placeholder='get star by name (i.e. vega, sirius)...'/>
           <button className='button' onClick={()=>{getStarAPI(displaySettings, setStarData)}}><span>submit</span></button>
           <hr className='infoDataLine'/>
         </div>
