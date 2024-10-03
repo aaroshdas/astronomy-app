@@ -359,12 +359,11 @@ function setDate(setStarData, displaySettings){
   let day = parseInt(document.getElementById("datePicker").value.slice(8,10))+0;
   console.log(year, month, day);
   let hour = parseInt(document.getElementById("hour").value)+0;
-  if(year < 1900 || year > 2400 || isNaN(year)){year = 2024;}
   if(hour < 0 || hour > 24 || isNaN(hour)){hour = 12;}
   
   let newDate = new Date(year, month, day, hour)
   console.log(newDate)
-  currentDate = newDate;
+  currentDate = newDate; 
   dataUpdater(setStarData,displaySettings);
 }
 
@@ -416,7 +415,7 @@ function App() {
       
       <div id = "time-date-dropdown" className = "dropDownSmallHeight date-dropdown-container">
         <input defaultValue={currentDate} id = "datePicker" className = "dateBox" type = "date"/>
-        <input defaultValue={currentDate.getHours()} id = "hour" className = "dateInputBox" type = "number" min = "0" max = "24" placeholder='HH'/>
+        <input id = "hour" className = "dateInputBox" type = "number" min = "0" max = "24" placeholder='hour'/>
         <button className='button' onClick={()=>{setDate(setStarData, displaySettings)}}><span>submit</span></button>
       </div>
 
