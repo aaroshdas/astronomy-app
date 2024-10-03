@@ -514,9 +514,7 @@ function App() {
             dataUpdater(setStarData, [displaySettings[0], displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value)]); 
             document.getElementById("minMag").value = bortleClassToVMag(document.getElementById("bortle").value)
           }}><span>submit</span></button>
-        
         </div>
-
         <main id = "body"></main>
         <main id = "relToHorizon"></main>
         <main id = "mag"></main>
