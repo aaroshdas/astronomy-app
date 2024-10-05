@@ -384,12 +384,13 @@ function setDate(setStarData, displaySettings){
   let hour = parseInt(document.getElementById("hour").value)+0;
   let min = parseInt(document.getElementById("min").value)+0;
   if(hour < 0 || hour > 24 || isNaN(hour)){hour = 12;}
-  if(min < 0 || min >= 60 || isNaN(hour)){min = 0;}
+  if(min < 0 || min >= 60 || isNaN(min)){min = 0;}
   
   let newDate = new Date(year, month, day, hour,min)
   currentDate = newDate; 
   dataUpdater(setStarData,displaySettings);
 }
+
 
 let callLoadOnce = false;
 function App() {
