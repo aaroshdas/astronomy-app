@@ -520,11 +520,11 @@ function App() {
           <label htmlFor ="extra-solar">show extra solar objects</label>
         </div>
         <div className = 'checkbox'>
-          <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1], displaySettings[2], displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1], displaySettings[2], displaySettings[3]])}}/>
+          <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1], displaySettings[2], displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1], displaySettings[2], displaySettings[3]])}} defaultChecked={false}/>
           <label htmlFor ="show-unnamed">show unnamed objects</label>
         </div>
         <div className = 'checkbox'>
-          <input type="checkbox" id="show-spec-cls" onClick={()=>{setDisplaySettings([displaySettings[0], displaySettings[1], displaySettings[2], !displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], displaySettings[2], !displaySettings[3]])}}/>
+          <input type="checkbox" id="show-spec-cls" onClick={()=>{setDisplaySettings([displaySettings[0], displaySettings[1], displaySettings[2], !displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], displaySettings[2], !displaySettings[3]])}} defaultChecked={false}/>
           <label htmlFor ="show-spec-cls">use spectral class data</label>
         </div>
         <div className='vMagSetter'>
