@@ -88,7 +88,7 @@ function getLocalTime(){
 
 export async function setUpdateDataFromSuggestion(value, setStarData,displaySettings){
   let splitVal = value.split(",")
-  const newBody = new Body(splitVal[0], Number(splitVal[1]), Number(splitVal[2]), Number(splitVal[3]), 1)
+  const newBody = new Body(splitVal[0], Number(splitVal[1]), Number(splitVal[2]), Number(splitVal[3]), 1, "F")
   updateStarData(newBody)
   if(newBody.altitude >0){
   }
@@ -96,7 +96,7 @@ export async function setUpdateDataFromSuggestion(value, setStarData,displaySett
     selectedBody = null;
   }
   const bodyObjects = await getBodyArray(displaySettings)
-  createData(bodyObjects, setStarData)
+  createData(bodyObjects, setStarData, displaySettings)
 }
 
 function updateStarData(body){
@@ -135,7 +135,7 @@ function updateLocalData(){
 }
 
 class Body{
-  constructor(label, ra, dec, mag, importance){
+  constructor(label, ra, dec, mag, importance, specCls){
       this.label = label;
       let bodyData = Astronomy.Horizon(currentDate, localObserver, ra, dec, 'normal');
       this.altitude = Number(bodyData.altitude);
@@ -144,10 +144,13 @@ class Body{
       this.dec = Number(dec);
       this.importance = importance;
       this.mag = mag;
+      this.specCls = specCls;
+      //ADD spectral class, need to access from catalog, hard code it for planets
+      // Star API might have
   }
 }    
 
-function createData(bodies, setStarData){ 
+function createData(bodies, setStarData, displaySettings){ 
     const data = []
     for(let i =0; i <bodies.length; i++){
       let bodyData = bodies[i]
@@ -155,14 +158,26 @@ function createData(bodies, setStarData){
         let bgColor = 'rgb(255, 255,255)'
         let importanceOffset = 0
         
+        
         if(bodies[i].importance<=1){
           importanceOffset += (bodyData.mag - 5 )*-0.25
-          bgColor = `rgb(255, 255, ${255-(bodyData.mag - 6 )*-10 })`
+          if(displaySettings[3] === false){bgColor = `rgb(255, 255, ${255-(bodyData.mag - 6 )*-10 })`}
         }
         else{
           importanceOffset += (bodyData.mag - 5 )*-0.075
-          bgColor = `rgb(255, 255, ${255-(bodyData.mag - 6 )*-5 })`
+          if(displaySettings[3] === false){bgColor = `rgb(255, 255, ${255-(bodyData.mag - 6 )*-5 })`}
         }
+        if(displaySettings[3] === true){
+          if(bodyData.specCls === "O"){bgColor = 'rgba(214, 224, 255,0.7)'}
+          if(bodyData.specCls === "B"){bgColor = 'rgba(227, 234, 255,0.7)'}
+          if(bodyData.specCls === "A"){bgColor = 'rgba(240, 244, 255,0.7)'}
+          if(bodyData.specCls === "F"){bgColor = 'rgba(255, 255, 255,0.7)'}
+          if(bodyData.specCls === "G"){bgColor = 'rgba(251, 255, 204,0.7)'}
+          if(bodyData.specCls === "K"){bgColor = 'rgba(255, 239, 225,0.7)'}
+          if(bodyData.specCls === "M"){bgColor = 'rgba(250, 230, 225,0.7)'}
+        }
+
+
         if(bodies[i].label === "Sun") {bgColor = 'rgb(255, 255,0)';importanceOffset+=0.35}
 
 
@@ -218,14 +233,22 @@ async function getBodiesFromFile(displaySettings){
       let ra = (Number(rawRA.slice(0,2)) + (Number(rawRA.slice(4,6))+(Number(rawRA.slice(8,12))*0.01))/60)
       let name = "no name"
       let mag = Number(starFile[i]["Vmag"])
-      let newBody = new Body(name, ra, dec, mag,1)
+      let specCls = (starFile[i]["SpectralCls"])
+      if(specCls === undefined){
+        specCls = "F"
+      }
+      else{
+        specCls = specCls.slice(0,1)
+      }
+  
+      let newBody = new Body(name, ra, dec, mag,1, specCls)
 
       if(starFile[i].hasOwnProperty("Name")){name = starFile[i]["Name"]}
       else if(displaySettings[1] === true){
         allFileBodyObjects.push(newBody)
         continue;
       }
-      newBody = new Body(name, ra, dec, mag,1)
+      newBody = new Body(name, ra, dec, mag,1, specCls)
       allFileBodyObjects.push(newBody)
       fileBodyObjects.push(newBody)
     }
@@ -235,10 +258,10 @@ async function getBodiesFromFile(displaySettings){
     for(let i = 0; i < allFileBodyObjects.length; i++){
       if(Number(displaySettings[2]) > allFileBodyObjects[i].mag){
         if(displaySettings[1] === true && allFileBodyObjects[i].label !== "no name"){
-          newDateFile.push(new Body(allFileBodyObjects[i].label, allFileBodyObjects[i].ra, allFileBodyObjects[i].dec, allFileBodyObjects[i].mag, allFileBodyObjects[i].importance))
+          newDateFile.push(new Body(allFileBodyObjects[i].label, allFileBodyObjects[i].ra, allFileBodyObjects[i].dec, allFileBodyObjects[i].mag, allFileBodyObjects[i].importance, allFileBodyObjects[i].specCls))
         }
         else if(displaySettings[1] === false){
-          newDateFile.push(new Body(allFileBodyObjects[i].label, allFileBodyObjects[i].ra, allFileBodyObjects[i].dec, allFileBodyObjects[i].mag, allFileBodyObjects[i].importance))
+          newDateFile.push(new Body(allFileBodyObjects[i].label, allFileBodyObjects[i].ra, allFileBodyObjects[i].dec, allFileBodyObjects[i].mag, allFileBodyObjects[i].importance, allFileBodyObjects[i].specCls))
         }
       }
     }
@@ -252,10 +275,12 @@ async function getBodyArray(displaySettings){
     const bodyObjects = []
     
     const rawBodies = [Astronomy.Body.Sun, Astronomy.Body.Mercury, Astronomy.Body.Venus, Astronomy.Body.Moon, Astronomy.Body.Mars, Astronomy.Body.Jupiter, Astronomy.Body.Uranus, Astronomy.Body.Saturn, Astronomy.Body.Neptune]
+    const specClasses =["M", "F", "K", "F", "M", "K", "O", "A", "O"]
     for(let i = 0; i <rawBodies.length; i++){
       let mag = Astronomy.Illumination(rawBodies[3], currentDate)["mag"]
       let tempEquator = (Astronomy.Equator(rawBodies[i], currentDate, localObserver, true, false));
-      bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec, mag,2.5));
+
+      bodyObjects.push(new Body(rawBodies[i].toString(), tempEquator.ra, tempEquator.dec, mag,2.5, specClasses[i]));
     }
     if(displaySettings[0] === true){
       let file = await getBodiesFromFile(displaySettings);
@@ -282,7 +307,7 @@ export async function dataUpdater(setStarData,displaySettings){
     const bodyObjects = await getBodyArray(displaySettings)
     updateLocalData()
     updateStarData(bodyObjects[0]);
-    createData(bodyObjects, setStarData)  
+    createData(bodyObjects, setStarData, displaySettings)  
   }
   else{
     setTimeout(dataUpdater, 500, setStarData,displaySettings)
@@ -305,7 +330,6 @@ function bortleClassToVMag(bortle){
 }
 
 function getStarAPI(displaySettings, setStarData){
-  // console.log(document.getElementById("star-API-name").value)
   let options = {
     method: 'GET',
     headers: { 'x-api-key': 'vffoINVuhjl5U06QJ8cIsQ==Zr401BBv29T4cfew' }
@@ -330,8 +354,8 @@ function getStarAPI(displaySettings, setStarData){
     else{
       mag = Number(data[0]['apparent_magnitude'])
     }
-    const newStar = new Body(data[0]['name'], ra, dec, mag, 1)
-    console.log(newStar)
+    let specCls = data[0]["spectral_class"].slice(0,1)
+    const newStar = new Body(data[0]['name'], ra, dec, mag, 1, specCls)
     updateStarData(newStar)
     if(newStar.altitude >0){
     }
@@ -340,7 +364,7 @@ function getStarAPI(displaySettings, setStarData){
     }
     const bodyObjects = await getBodyArray(displaySettings)
     bodyObjects.push(newStar)
-    createData(bodyObjects, setStarData)
+    createData(bodyObjects, setStarData, displaySettings)
     //see setUpdateDataFromSuggestions
   })
   .catch(err => {
@@ -357,14 +381,12 @@ function setDate(setStarData, displaySettings){
   let year = parseInt(document.getElementById("datePicker").value.slice(0,4))+0;
   let month = parseInt(document.getElementById("datePicker").value.slice(5,7))-1;
   let day = parseInt(document.getElementById("datePicker").value.slice(8,10))+0;
-  console.log(year, month, day);
   let hour = parseInt(document.getElementById("hour").value)+0;
   let min = parseInt(document.getElementById("min").value)+0;
   if(hour < 0 || hour > 24 || isNaN(hour)){hour = 12;}
   if(min < 0 || min >= 60 || isNaN(hour)){min = 0;}
   
   let newDate = new Date(year, month, day, hour,min)
-  console.log(newDate)
   currentDate = newDate; 
   dataUpdater(setStarData,displaySettings);
 }
@@ -374,7 +396,7 @@ function App() {
   const [renderGraph, setRenderGraph] = useState(false);
   const [starData, setStarData] = useState({datasets: [{label: 'horizon scatterplot',data: [{}],backgroundColor: 'rgb(255, 255,255)'}],});
   // ARRAY [use extra stars, only named stars]
-  const [displaySettings, setDisplaySettings] = useState([true, true, 8])
+  const [displaySettings, setDisplaySettings] = useState([true, true, 8, false])
   window.addEventListener("load", ()=>{
       dataUpdater(setStarData, displaySettings);
       if(callLoadOnce === false){
@@ -429,7 +451,6 @@ function App() {
             placeholder='Find a specific address...'
             placeSelect={(value)=>{
               if(value !== null){
-                console.log(value)
                 if(value["bbox"] !== undefined){
                   setLocation(value["bbox"][1], value["bbox"][0]);
                   dataUpdater(setStarData,displaySettings);
@@ -495,25 +516,30 @@ function App() {
           <hr className='infoDataLine'/>
         </div>
         <div className = 'checkbox'>
-          <input type="checkbox" id="extra-solar" onClick={()=>{setDisplaySettings([!displaySettings[0], displaySettings[1], displaySettings[2]]);dataUpdater(setStarData, [!displaySettings[0], displaySettings[1], displaySettings[2]])}} defaultChecked/>
+          <input type="checkbox" id="extra-solar" onClick={()=>{setDisplaySettings([!displaySettings[0], displaySettings[1], displaySettings[2], displaySettings[3]]);dataUpdater(setStarData, [!displaySettings[0], displaySettings[1], displaySettings[2], displaySettings[3]])}} defaultChecked/>
           <label htmlFor ="extra-solar">show extra solar objects</label>
         </div>
         <div className = 'checkbox'>
-          <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1], displaySettings[2]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1], displaySettings[2]])}}/>
+          <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !displaySettings[1], displaySettings[2], displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], !displaySettings[1], displaySettings[2], displaySettings[3]])}}/>
           <label htmlFor ="show-unnamed">show unnamed objects</label>
+        </div>
+        <div className = 'checkbox'>
+          <input type="checkbox" id="show-spec-cls" onClick={()=>{setDisplaySettings([displaySettings[0], displaySettings[1], displaySettings[2], !displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], displaySettings[2], !displaySettings[3]])}}/>
+          <label htmlFor ="show-spec-cls">use spectral class data</label>
         </div>
         <div className='vMagSetter'>
           <main>set max extra solar vmag:</main>
           <input className= "inputBox" id = "minMag" defaultValue={displaySettings[2]} type = "number" max = "12" placeholder='max visual magnitude...'/>
-          <button className='button' onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value]) }}><span>submit</span></button>
+          <button className='button' onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value, displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value, displaySettings[3]]) }}><span>submit</span></button>
           
           <main>use bortle class:</main>
           <input className= "inputBox" id = "bortle" defaultValue={1} type = "number" max = "9" min="1" placeholder='bortle class...'   />
           <button className='button' onClick={()=>{
-            setDisplaySettings([displaySettings[0],displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value)]);
-            dataUpdater(setStarData, [displaySettings[0], displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value)]); 
+            setDisplaySettings([displaySettings[0],displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value), displaySettings[3]]);
+            dataUpdater(setStarData, [displaySettings[0], displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value), displaySettings[3]]); 
             document.getElementById("minMag").value = bortleClassToVMag(document.getElementById("bortle").value)
           }}><span>submit</span></button>
+
         </div>
         <main id = "body"></main>
         <main id = "relToHorizon"></main>
