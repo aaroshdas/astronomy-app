@@ -29,10 +29,11 @@ let timezone= -2
 let selectedBody = null;
 let currentDate = new Date(); 
 
+
 navigator.geolocation.getCurrentPosition(function (position) {
   localObserver = new Astronomy.Observer(position.coords.latitude, position.coords.longitude, elevation);
   
-  let newURL = `https://api.timezonedb.com/v2.1/get-time-zone?key=41I0S90JC6N3&format=json&by=position&lat=${position.coords.latitude}&lng=${position.coords.longitude}`
+  let newURL = `https://api.timezonedb.com/v2.1/get-time-zone?key=${process.env.REACT_APP_DB_KEY}&format=json&by=position&lat=${position.coords.latitude}&lng=${position.coords.longitude}`
   axios.get(newURL)
   .catch(function(){
     console.log("axios error")
@@ -61,7 +62,7 @@ export function setLocation(lat, long){
   localObserver = null
   localObserver = new Astronomy.Observer(lat, long, elevation);
   timezone = -1
-  let newURL = `https://api.timezonedb.com/v2.1/get-time-zone?key=41I0S90JC6N3&format=json&by=position&lat=${lat}&lng=${long}`
+  let newURL = `https://api.timezonedb.com/v2.1/get-time-zone?key=${process.env.REACT_APP_DB_KEY}&format=json&by=position&lat=${lat}&lng=${long}`
   axios.get(newURL)
   .catch(function(){
     console.log("axios error")
@@ -332,7 +333,7 @@ function bortleClassToVMag(bortle){
 function getStarAPI(displaySettings, setStarData){
   let options = {
     method: 'GET',
-    headers: { 'x-api-key': 'vffoINVuhjl5U06QJ8cIsQ==Zr401BBv29T4cfew' }
+    headers: { 'x-api-key': process.env.REACT_APP_STAR_API_KEY }
   }
   const valName = document.getElementById("star-API-name").value
   let url = `https://api.api-ninjas.com/v1/stars?name=${valName}`
@@ -447,7 +448,7 @@ function App() {
       </div>
 
       <div id = "address-dropdown" className='addressAutocomplete dropDownSmallHeight'>
-        <GeoapifyContext apiKey="e546f68274a546ac8129e9e82a49d8b4">
+        <GeoapifyContext apiKey={process.env.REACT_APP_GEOAPIFY_KEY}>
           <GeoapifyGeocoderAutocomplete id = "address-autocomplete"
             placeholder='Find a specific address...'
             placeSelect={(value)=>{
