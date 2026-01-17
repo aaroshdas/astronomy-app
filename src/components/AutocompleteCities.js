@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import countryStateCityList from '../cities/city-list-countries.txt'
+import countryStateCityList from '../data/cities/city-list-countries.txt'
 
 import { dataUpdater, setLocation } from "../App";
 

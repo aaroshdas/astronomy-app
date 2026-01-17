@@ -12,13 +12,13 @@ import {
 
 import axios from 'axios'
 
-import Scatterplot from './js/Scatterplot.js';
-import AutocompleteCities from './js/AutocompleteCities.js';
-import AutocompleteBodies from './js/AutocompleteBodies.js';
+import Scatterplot from './components/Scatterplot.js';
+import AutocompleteCities from './components/AutocompleteCities.js';
+import AutocompleteBodies from './components/AutocompleteBodies.js';
 
-import starFile from './stars/bsc5.json'
+import starFile from './data/stars/bsc5.json'
 
-const Astronomy = require('./js/astronomy.js');
+const Astronomy = require('./components/astronomy.js');
 
 
 const elevation = 351
