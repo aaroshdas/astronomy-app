@@ -1,0 +1,12 @@
+body{
+    font-family: Helvetica;
+    background-color: rgb(255,255,255);
+}
+.scatterplot-canvas {
+    background-color: black;
+    width: 50vw;
+}
+.input-box{
+    font-family: Arial;
+    min-width: 4vw
+}

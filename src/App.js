@@ -1,4 +1,4 @@
-import './App.css';
+import './css/App.css';
 
 import React, { useState } from 'react';
 import '@geoapify/geocoder-autocomplete/styles/round-borders-dark.css';
@@ -412,9 +412,9 @@ function App() {
       <AutocompleteCities setStarData={setStarData} displaySettings= {displaySettings}/>
       
       <div id = "time-date-dropdown">
-        <input defaultValue={currentDate} id = "datePicker" className = "dateBox" type = "date"/>
-        <input id = "hour" className = "inputBox" type = "number" min = "0" max = "24" placeholder='hour'/>
-        <input id = "min" className = "inputBox" type = "number" min = "0" max = "60" placeholder='min'/>
+        <input defaultValue={currentDate} id = "datePicker" className = "input-box" type = "date"/>
+        <input id = "hour" className = "input-box" type = "number" min = "0" max = "24" placeholder='hour'/>
+        <input id = "min" className = "input-box" type = "number" min = "0" max = "60" placeholder='min'/>
         
         <button onClick={()=>{setDate(setStarData, displaySettings)}}><span>submit</span></button>
       </div>
@@ -428,7 +428,7 @@ function App() {
       <main id = "dec"></main>
     </section>
 
-    <section>
+    <section className="scatterplot-canvas">
       <Scatterplot chartData={starData} render={true}></Scatterplot>
     </section>
 
