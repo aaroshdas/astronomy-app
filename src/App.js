@@ -408,7 +408,7 @@ function App() {
   return (
   <div>
     <section>
-      <p>local data/zenith coords</p>
+      <p>Local Coordinates / Zenith Position</p>
       <AutocompleteCities setStarData={setStarData} displaySettings= {displaySettings}/>
       
       <div id = "time-date-dropdown">
@@ -433,36 +433,36 @@ function App() {
     </section>
 
     <section>
-      <p>body coords in relation to observer</p>
+      <p>Settings / Body Coordinates in Relation to Observer</p>
    
       <AutocompleteBodies suggestionsPromise={getBodySuggestions(displaySettings)} displaySettings={displaySettings} setStarData={setStarData}/>
-
+      
 
       <div>
-        <main>get star by exact name:</main>
+        <main>Get star by exact name:</main>
         <input className = "starInputBox" id = "star-API-name" type = "text" placeholder='get star by name (i.e. vega, sirius)...'/>
         <button className='button' onClick={()=>{getStarAPI(displaySettings, setStarData)}}><span>submit</span></button>
       </div>
 
       <div className = 'checkbox'>
         <input type="checkbox" id="extra-solar" onClick={()=>{setDisplaySettings([document.getElementById("extra-solar").checked, displaySettings[1], displaySettings[2], displaySettings[3]]);dataUpdater(setStarData, [document.getElementById("extra-solar").checked, displaySettings[1], displaySettings[2], displaySettings[3]])}} defaultChecked/>
-        <label htmlFor ="extra-solar">show extra solar objects</label>
+        <label htmlFor ="extra-solar">Show extra solar objects</label>
       </div>
       <div className = 'checkbox'>
         <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !document.getElementById("show-unnamed").checked, displaySettings[2], displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], !document.getElementById("show-unnamed").checked, displaySettings[2], displaySettings[3]])}} defaultChecked={false}/>
-        <label htmlFor ="show-unnamed">show unnamed objects</label>
+        <label htmlFor ="show-unnamed">Show unnamed objects</label>
       </div>
       <div className = 'checkbox'>
         <input type="checkbox" id="show-spec-cls" onClick={()=>{setDisplaySettings([displaySettings[0], displaySettings[1], displaySettings[2], document.getElementById("show-spec-cls").checked]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], displaySettings[2], document.getElementById("show-spec-cls").checked])}} defaultChecked={false}/>
-        <label htmlFor ="show-spec-cls">use spectral class data</label>
+        <label htmlFor ="show-spec-cls">Use spectral class data</label>
       </div>
 
       <div>
-        <main>set max extra solar vmag:</main>
+        <main>Set max extra solar vmag:</main>
         <input className= "inputBox" id = "minMag" defaultValue={displaySettings[2]} type = "number" max = "12" placeholder='max visual magnitude...'/>
         <button onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value, displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value, displaySettings[3]]) }}><span>submit</span></button>
         
-        <main>use bortle class:</main>
+        <main>Use / Set Bortle Class:</main>
         <input id = "bortle" defaultValue={1} type = "number" max = "9" min="1" placeholder='bortle class...'   />
         <button className='button' onClick={()=>{
           setDisplaySettings([displaySettings[0],displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value), displaySettings[3]]);

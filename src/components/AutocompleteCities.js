@@ -49,6 +49,7 @@ function AutocompleteCities({setStarData, displaySettings}){
         setFilteredSuggestions(filtered);
     }
     const handleSelect = (value) =>{
+        document.getElementById("currentLocation").innerHTML = `Current location: ${value.split(",")[0].slice(0,1)}${value.split(",")[0].slice(1, value.length).toLowerCase()}, ${value.split(",")[3]}`
         setFilteredSuggestions([]);
         setLocation(Number(value.split(",")[1]), Number(value.split(",")[2]))
         dataUpdater(setStarData,displaySettings)
@@ -57,6 +58,9 @@ function AutocompleteCities({setStarData, displaySettings}){
 
     return(
         <div className="autocomplete-city-container">
+            <div>
+                <main id = "currentLocation">Current location: User Location</main>
+            </div>
             <input className="autocomplete-input"
                 id = 'searchBar'
                 type="text"
