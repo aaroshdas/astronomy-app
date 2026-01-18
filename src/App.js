@@ -3,12 +3,6 @@ import './App.css';
 import React, { useState } from 'react';
 import '@geoapify/geocoder-autocomplete/styles/round-borders-dark.css';
 
-import {
-  GeoapifyGeocoderAutocomplete,
-  GeoapifyContext
-} from '@geoapify/react-geocoder-autocomplete';
-
-
 
 import axios from 'axios'
 
@@ -232,7 +226,7 @@ async function getBodiesFromFile(displaySettings){
 
       let rawRA = starFile[i]["RA"]
       let ra = (Number(rawRA.slice(0,2)) + (Number(rawRA.slice(4,6))+(Number(rawRA.slice(8,12))*0.01))/60)
-      let name = "no name"
+      let name = "unnamed"
       let mag = Number(starFile[i]["Vmag"])
       let specCls = (starFile[i]["SpectralCls"])
       if(specCls === undefined){
@@ -373,10 +367,7 @@ function getStarAPI(displaySettings, setStarData){
   }); 
   document.getElementById("star-API-name").value = ""
 }
-function reformatStarData(starData){
-  const newL = starData['datasets'].slice(0, -1)
-  return {datasets: newL}
-}
+
 
 function setDate(setStarData, displaySettings){
   let year = parseInt(document.getElementById("datePicker").value.slice(0,4))+0;
@@ -395,34 +386,20 @@ function setDate(setStarData, displaySettings){
 
 let callLoadOnce = false;
 function App() {
-  const [renderGraph, setRenderGraph] = useState(false);
   const [starData, setStarData] = useState({datasets: [{label: 'horizon scatterplot',data: [{}],backgroundColor: 'rgb(255, 255,255)'}],});
   // ARRAY [use extra stars, only named stars]
   const [displaySettings, setDisplaySettings] = useState([true, true, 8, false])
   window.addEventListener("load", ()=>{
       dataUpdater(setStarData, displaySettings);
       if(callLoadOnce === false){
-        document.getElementById("show-big-horizon").addEventListener("click", ()=>{
-          if(document.getElementById("big-scattorplot").classList.contains('dropDownFull')){
-            document.getElementById("big-scattorplot").classList.remove('dropDownFull')
-          }else{
-            document.getElementById("big-scattorplot").classList.add('dropDownFull')
-          }
-        });
-        document.getElementById("address").addEventListener("click", ()=>{
-          if(document.getElementById("address-dropdown").classList.contains('dropDownFullHeight')){
-            document.getElementById("address-dropdown").classList.remove('dropDownFullHeight')
-          }else{
-            document.getElementById("address-dropdown").classList.add('dropDownFullHeight')
-          }
-        });
-        document.getElementById("timeAndDate").addEventListener("click", ()=>{
-          if(document.getElementById("time-date-dropdown").classList.contains('dropDownFullHeight')){
-            document.getElementById("time-date-dropdown").classList.remove('dropDownFullHeight')
-          }else{
-            document.getElementById("time-date-dropdown").classList.add('dropDownFullHeight')
-          }
-        });
+        // ADD EVENT LISTENERS
+        // document.getElementById("timeAndDate").addEventListener("click", ()=>{
+        //   if(document.getElementById("time-date-dropdown").classList.contains('dropDownFullHeight')){
+        //     document.getElementById("time-date-dropdown").classList.remove('dropDownFullHeight')
+        //   }else{
+        //     document.getElementById("time-date-dropdown").classList.add('dropDownFullHeight')
+        //   }
+        // });
         callLoadOnce = true;
       }
       
@@ -430,129 +407,79 @@ function App() {
 
   return (
   <div>
-    <div className='dataSeparator'>
-      <div className='cityDataContainer'>
+    <section>
       <p>local data/zenith coords</p>
       <AutocompleteCities setStarData={setStarData} displaySettings= {displaySettings}/>
-      <div>
-        <button id="address" className='button addressButton'><span>Find by exact address</span></button>
-        <button id="timeAndDate" className='button addressButton'><span>Set date and time</span></button>
-      </div>
       
-      <div id = "time-date-dropdown" className = "dropDownSmallHeight date-dropdown-container">
+      <div id = "time-date-dropdown">
         <input defaultValue={currentDate} id = "datePicker" className = "dateBox" type = "date"/>
-        <input id = "hour" className = "dateInputBox" type = "number" min = "0" max = "24" placeholder='hour'/>
-        <input id = "min" className = "dateInputBox" type = "number" min = "0" max = "60" placeholder='min'/>
+        <input id = "hour" className = "inputBox" type = "number" min = "0" max = "24" placeholder='hour'/>
+        <input id = "min" className = "inputBox" type = "number" min = "0" max = "60" placeholder='min'/>
         
-        <button className='button' onClick={()=>{setDate(setStarData, displaySettings)}}><span>submit</span></button>
+        <button onClick={()=>{setDate(setStarData, displaySettings)}}><span>submit</span></button>
       </div>
 
-      <div id = "address-dropdown" className='addressAutocomplete dropDownSmallHeight'>
-        <GeoapifyContext apiKey={process.env.REACT_APP_GEOAPIFY_KEY}>
-          <GeoapifyGeocoderAutocomplete id = "address-autocomplete"
-            placeholder='Find a specific address...'
-            placeSelect={(value)=>{
-              if(value !== null){
-                if(value["bbox"] !== undefined){
-                  setLocation(value["bbox"][1], value["bbox"][0]);
-                  dataUpdater(setStarData,displaySettings);
-                  if(document.getElementById("address-dropdown").classList.contains('dropDownFullHeight')){
-                    document.getElementById("address-dropdown").classList.remove('dropDownFullHeight')
-                  }
-                }
-                else if(value["geometry"] !== undefined){
-                  setLocation(value["geometry"]['coordinates'][1], value["geometry"]['coordinates'][0]);
-                  dataUpdater(setStarData,displaySettings);
-                  if(document.getElementById("address-dropdown").classList.contains('dropDownFullHeight')){
-                    document.getElementById("address-dropdown").classList.remove('dropDownFullHeight')
-                  }
-                }
-              }
-            }}
-          />
-        
-        </GeoapifyContext>
 
-      </div>
-      <hr className = 'cityDataLine' />
       <main id = "longlat"></main>
-      
       <main id = "localDate"></main>
       <main id = "utcDate"></main>
       <main id = "date"></main>
       <main id = "RA"></main>
       <main id = "dec"></main>
-      <hr className = 'cityDataLine' />
+    </section>
+
+    <section>
+      <Scatterplot chartData={starData} render={true}></Scatterplot>
+    </section>
+
+    <section>
+      <p>body coords in relation to observer</p>
+   
+      <AutocompleteBodies suggestionsPromise={getBodySuggestions(displaySettings)} displaySettings={displaySettings} setStarData={setStarData}/>
+
+
+      <div>
+        <main>get star by exact name:</main>
+        <input className = "starInputBox" id = "star-API-name" type = "text" placeholder='get star by name (i.e. vega, sirius)...'/>
+        <button className='button' onClick={()=>{getStarAPI(displaySettings, setStarData)}}><span>submit</span></button>
+      </div>
+
+      <div className = 'checkbox'>
+        <input type="checkbox" id="extra-solar" onClick={()=>{setDisplaySettings([document.getElementById("extra-solar").checked, displaySettings[1], displaySettings[2], displaySettings[3]]);dataUpdater(setStarData, [document.getElementById("extra-solar").checked, displaySettings[1], displaySettings[2], displaySettings[3]])}} defaultChecked/>
+        <label htmlFor ="extra-solar">show extra solar objects</label>
+      </div>
+      <div className = 'checkbox'>
+        <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !document.getElementById("show-unnamed").checked, displaySettings[2], displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], !document.getElementById("show-unnamed").checked, displaySettings[2], displaySettings[3]])}} defaultChecked={false}/>
+        <label htmlFor ="show-unnamed">show unnamed objects</label>
+      </div>
+      <div className = 'checkbox'>
+        <input type="checkbox" id="show-spec-cls" onClick={()=>{setDisplaySettings([displaySettings[0], displaySettings[1], displaySettings[2], document.getElementById("show-spec-cls").checked]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], displaySettings[2], document.getElementById("show-spec-cls").checked])}} defaultChecked={false}/>
+        <label htmlFor ="show-spec-cls">use spectral class data</label>
+      </div>
+
+      <div>
+        <main>set max extra solar vmag:</main>
+        <input className= "inputBox" id = "minMag" defaultValue={displaySettings[2]} type = "number" max = "12" placeholder='max visual magnitude...'/>
+        <button onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value, displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value, displaySettings[3]]) }}><span>submit</span></button>
+        
+        <main>use bortle class:</main>
+        <input id = "bortle" defaultValue={1} type = "number" max = "9" min="1" placeholder='bortle class...'   />
+        <button className='button' onClick={()=>{
+          setDisplaySettings([displaySettings[0],displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value), displaySettings[3]]);
+          dataUpdater(setStarData, [displaySettings[0], displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value), displaySettings[3]]); 
+          document.getElementById("minMag").value = bortleClassToVMag(document.getElementById("bortle").value)
+        }}><span>submit</span></button>
 
       </div>
-    </div>
+      <main id = "body"></main>
+      <main id = "relToHorizon"></main>
+      <main id = "mag"></main>
+      <main id = "bodyRA"></main>
+      <main id = "bodyDec"></main>
+      <main id = "azimuth"></main>
+      <main id = "altitude"></main>
+    </section>
 
-    <div>
-      <div className='centerButton'>
-        <button id="show-big-horizon" style={{padding:"0.75%"}} className='button' onClick={()=>{setRenderGraph(!renderGraph)}}><span>Display complete horizon</span></button>
-      </div>
-
-      <div className='biggerScatterplot'>
-        <div id ="big-scattorplot" className = "dropDownSmall" style={{display:'none'}}>
-          <Scatterplot chartData={reformatStarData(starData)} render={renderGraph}></Scatterplot>
-        </div>
-      </div>
-
-    </div>
-
-    <div className='bottomInfoContainer'>
-
-      <div className='scatterplot'>
-        <Scatterplot chartData={starData} render={true}></Scatterplot>
-      </div>
-    
-      <div className='starInfo'>
-        <p>body coords in relation to observer</p>
-        <div className='buttonContainer'>
-          <AutocompleteBodies suggestionsPromise={getBodySuggestions(displaySettings)} displaySettings={displaySettings} setStarData={setStarData}/>
-        </div>
-        <div className='getStarByNameContainer'>
-          <main>get star by exact name:</main>
-          <input className = "starInputBox" id = "star-API-name" type = "text" placeholder='get star by name (i.e. vega, sirius)...'/>
-          <button className='button' onClick={()=>{getStarAPI(displaySettings, setStarData)}}><span>submit</span></button>
-          <hr className='infoDataLine'/>
-        </div>
-        <div className = 'checkbox'>
-          <input type="checkbox" id="extra-solar" onClick={()=>{setDisplaySettings([document.getElementById("extra-solar").checked, displaySettings[1], displaySettings[2], displaySettings[3]]);dataUpdater(setStarData, [document.getElementById("extra-solar").checked, displaySettings[1], displaySettings[2], displaySettings[3]])}} defaultChecked/>
-          <label htmlFor ="extra-solar">show extra solar objects</label>
-        </div>
-        <div className = 'checkbox'>
-          <input type="checkbox" id="show-unnamed" onClick={()=>{setDisplaySettings([displaySettings[0], !document.getElementById("show-unnamed").checked, displaySettings[2], displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], !document.getElementById("show-unnamed").checked, displaySettings[2], displaySettings[3]])}} defaultChecked={false}/>
-          <label htmlFor ="show-unnamed">show unnamed objects</label>
-        </div>
-        <div className = 'checkbox'>
-          <input type="checkbox" id="show-spec-cls" onClick={()=>{setDisplaySettings([displaySettings[0], displaySettings[1], displaySettings[2], document.getElementById("show-spec-cls").checked]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], displaySettings[2], document.getElementById("show-spec-cls").checked])}} defaultChecked={false}/>
-          <label htmlFor ="show-spec-cls">use spectral class data</label>
-        </div>
-        <div className='vMagSetter'>
-          <main>set max extra solar vmag:</main>
-          <input className= "inputBox" id = "minMag" defaultValue={displaySettings[2]} type = "number" max = "12" placeholder='max visual magnitude...'/>
-          <button className='button' onClick={()=>{setDisplaySettings([displaySettings[0],displaySettings[1], document.getElementById("minMag").value, displaySettings[3]]);dataUpdater(setStarData, [displaySettings[0], displaySettings[1], document.getElementById("minMag").value, displaySettings[3]]) }}><span>submit</span></button>
-          
-          <main>use bortle class:</main>
-          <input className= "inputBox" id = "bortle" defaultValue={1} type = "number" max = "9" min="1" placeholder='bortle class...'   />
-          <button className='button' onClick={()=>{
-            setDisplaySettings([displaySettings[0],displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value), displaySettings[3]]);
-            dataUpdater(setStarData, [displaySettings[0], displaySettings[1], bortleClassToVMag(document.getElementById("bortle").value), displaySettings[3]]); 
-            document.getElementById("minMag").value = bortleClassToVMag(document.getElementById("bortle").value)
-          }}><span>submit</span></button>
-
-        </div>
-        <main id = "body"></main>
-        <main id = "relToHorizon"></main>
-        <main id = "mag"></main>
-        <main id = "bodyRA"></main>
-        <main id = "bodyDec"></main>
-        <main id = "azimuth"></main>
-        <main id = "altitude"></main>
-        <hr className='infoDataLine'/>
-      </div>
-    </div>
   </div>
   );
 }
